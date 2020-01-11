@@ -1,4 +1,4 @@
-% TODO: Write notes explaining the provisioning!
+% TODO: Write notes explaining the provisioning! Ansible and Vagrant!
 \documentclass[12pt]{report}
 
 \usepackage[utf8]{inputenc}
@@ -13,7 +13,7 @@
 \hypersetup{
 	colorlinks = true,
 	linkcolor = blue,
-	filecolor = magenta,      
+	filecolor = magenta,
 	urlcolor = cyan,
 }
 
@@ -470,5 +470,80 @@
 				\newpar
 				And with that we are finished! :tada: We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
 
+	\section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
+		We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
+
+		\subsection{Command: \texttt{EOF} + \texttt{quit} + \texttt{exit}}
+			These three commands are used for the same thing, to exit the \textbf{Mininet CLI} and finish the emulation. The source code of these three commands does not differ much, \textbf{EOF} and \textbf{quit} end up using the \texttt{do_exit} function at the end, so we could say that they are a bit repetitive. They offer several ways to kill the emulation so that people with different backgrounds feel "at \texttt{~}". The source code taking care of exiting is:
+
+			\begin{minted}{python}
+				def do_exit( self, _line ):
+					"Exit"
+					assert self # satisfy pylint and allow override
+					return 'exited by user command'
+
+				def do_quit( self, line ):
+					"Exit"
+					return self.do_exit( line )
+
+				def do_EOF( self, line ):
+					"Exit"
+					output( '\n' )
+					return self.do_exit( line )
+			\end{minted}
+
+		\subsection{Command: \texttt{dpctl}}
+			The \textbf{dpctl} command is a management utility that allows some control over the OpenFlow switch (ovs-ofctl on the OpenvSwitch). This tool lets us add flows to the flow table, check the features and status of the switches or clean the table among many other things. For example, recall how we previously made a ping between \textbf{h1} and \textbf{h3}. If we consult the flow tables we will be able to check how the rules for handling \textbf{ICMP} flows have been instantiated as seen in figure \ref{f:dpctl}.
+
+			\begin{figure}
+				\centering
+				\includegraphics[scale = 1]{dpctl.png}
+				\caption{\texttt{DumpCTL}}
+				\label{f:dpctl}
+			\end{figure}
+
+			Note how in the first and third switches we have 3 flow instead of the default one that let's us communicate with the controller. On top of that, take a closer look at the third switch and notice how the input and output ports for the first flow are 3 and 1 respectively. The second rule has the exact opposite distribution: the input port is 1 and the output is port 3. This setup let's us establish a communication link through this switch between any machines hooked to port's 1 and 3. These are the rules the controller has automagically set for us!
+			\newpar
+			This command is quite complex and powerful, and it may not be completely necessary for what we are going to do in this practice. It is nevertheless undoubtedly one of the most important commands to understand the internal workings of \textbf{SDN} switches. For more information, we encourage you to take a look at the documentation over at \href{http://www.openvswitch.org/support/dist-docs/ovs-ofctl.8.txt}{OpenVSwitch}.
+
+		\subsection{Command: \texttt{dump} + \texttt{net}}
+			These commands will give us information about the emulated topology. The \textbf{net} command will indicate the names of the entities in the emulated topology as well as their interfaces. The \textbf{dump} command will also indicate the type of entity, its \textbf{IP} address, port when applicable, interface and the entity's process identifier (\textbf{PID}). You can find a sample output in figure \ref{f:dump}.
+
+			\begin{figure}
+				\centering
+				\includegraphics[scale = 1]{dump.png}
+				\caption{\texttt{dump's} output}
+				\label{f:fump}
+			\end{figure}
+
+		\subsection{Command: \texttt{xterm} + \texttt{gterm}}
+			These two commands will allow us to open terminal emulators in the node identified by the accompanying argument. The command \textbf{xterm} will allow us to open a simple \textbf{XTERM} (the default terminal emulator for the \textbf{X} windows system) terminal emulator, and \textbf{gterm} launches a prettier but more resource hungry \textbf{Gnome terminal}. We can open several terminals at once by indicating all the nodes we want to open a terminal in. Later, when we discuss the inner workings of \textbf{Mininet}, we'll talk a bit more about where the \textbf{bash} process attached to the terminal emulator is running. You might think that this process is totally isolated from the machine on which you are running \textbf{Mininet}, but this is not entirely the case... You can find a \texttt{xterm} instance running in figure \ref{f:xterm}.
+
+			\begin{minted}{bash}
+				# xterm/gterm [node1] [node2]
+				xterm h1 h6
+			\end{minted}
+
+			\begin{figure}
+				\centering
+				\includegraphics[scale = 1]{xterm.png}
+				\caption{Launching \texttt{xterm} on the nodes}
+				\label{f:xterm}
+			\end{figure}
+
+		\subsection{Command: \texttt{nodes} + \texttt{ports} + \texttt{initfs}}
+			These commands will list information related to the nodes in the topology. The \textbf{intfs} command will list all information related to the nodes' interfaces. The  \textbf{nodes} command will show every node in the topology. Finally, the \textbf{ports} command is used to list the ports and interfaces of the switches in the topology. An example output can be found in figure \ref{f:initfs}.
+
+			\begin{figure}
+				\centering
+				\includegraphics[scale = 1]{initfs_cmd.png}
+				\caption{The \texttt{ports} and \texttt{initfs} commands}
+				\label{f:initfs}
+			\end{figure}
+
+		\subsection{The Rest of the Commands}
+			Someone once told me \textbf{manpages} were my friends. This doesn't apply here directly but you get the idea. If you don't know what a command does try running it without arguments and you will be presented with a help section hopefully. If your machine blows up... It wasn't our fault! (It really shouldn't though :ok_woman:). You can also issue \texttt{help <command_name>} from the \textbf{mininet CLI} to gather more intel. You can also contact us directly. We didn't want this section to grow too large and we believe the above commands are more than enough for our purposes.
+
+	\section{Mininet's Internals}
 
 \end{document}
