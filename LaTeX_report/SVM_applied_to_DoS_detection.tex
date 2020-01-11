@@ -33,17 +33,17 @@
 		\maketitle
 	\end{titlepage}
 
-	\begin{abstarct}
+	\begin{abstract}
 		The purpose of this project is to develop an artificial intelligence to classify possible DDoS attacks in an SDN network. This will be done by using data collectors such as Telegraf, Mininet to emulate the SDN network, and InfluxDB and Grafana as a means to store data and visualize it respectively. For non-English speakers we leave part of the content of this guide written in Spanish:
 
 		\begin{itemize}
-			\item Network Scenario - Mininet Guide: \href{https://hackmd.io/@davidcawork/r1fZC-nRS}{Link}
-			\item DDoS using hping3 tool Guide: \href{https://hackmd.io/@davidcawork/HJ_D7jA0r}{Link}
-			\item Mininet Internals (II) Guide: \href{https://hackmd.io/@davidcawork/SyrwHoNJL}{Link}
+			\item Network Scenario - Mininet Guide \href{https://hackmd.io/@davidcawork/r1fZC-nRS}{Link}
+			\item DDoS using hping3 tool Guide \href{https://hackmd.io/@davidcawork/HJ_D7jA0r}{Link}
+			\item Mininet Internals (II) Guide \href{https://hackmd.io/@davidcawork/SyrwHoNJL}{Link}
 		\end{itemize}
 
-		\textbf{Keywords}: \href{https://www.digitalattackmap.com}{\textit{DDoS attacks}}; \href{https://www.opennetworking.org/sdn-definition}{\textit{SDN network}}; \href{https://www.sciencedirect.com/science/article/abs/pii/016974399500050X}{\textit{Artificial Intelligence classification}}; \href{http://mininet.org}{\textit{Mininet}}
-	\end{abstarct}
+		\textbf{Keywords}: \href{https://www.digitalattackmap.com/}{\textit{DDoS attacks}}; \href{https://www.opennetworking.org/sdn-definition}{\textit{SDN network}}; \href{https://www.sciencedirect.com/science/article/abs/pii/016974399500050X}{\textit{Artificial Intelligence classification}}; \href{https://mininet.org}{\textit{Mininet}}
+	\end{abstract}
 
 	\tableofcontents
 
@@ -54,7 +54,7 @@
 		We have created a \textbf{Vagrantfile} through which we provide each machine with the necessary scripts to install and configure the scenario. By working in a virtualized environment we make sure we all have the exact same configuration so that tracing and fixing errors becomes much easier. If you do not want to use Vagrant as a provider you can follow the native installation method we present below.
 
 		\subsection{Vagrant}
-			First of all, clone the repository from GitHub :octocat: and navigate into the new directory with:
+			First of all, clone the repository from GitHub  
 
 			\begin{minted}{bash}
 				git clone https://github.com/GAR-Project/project
@@ -67,7 +67,7 @@
 				vagrant up
 			\end{minted}
 
-			And we have to connect to both machines. \textbf{Vagrant} provides a wrapper for the \textit{SSH} utility that makes it a breeze to get into each virtual machine. The syntax is just \texttt{vagrant ssh <machine_name>} where the \texttt{<machine_name>} is given in the \textbf{Vagrantfile} (take a look at the appendix for more details):
+			And we have to connect to both machines. \textbf{Vagrant} provides a wrapper for the \textit{SSH} utility that makes it a breeze to get into each virtual machine. The syntax is just \texttt{vagrant ssh <machine\_name>} where the \texttt{<machine\_name>} is given in the \textbf{Vagrantfile} (take a look at the appendix for more details):
 
 			\begin{minted}{bash}
 				vagrant ssh test
@@ -116,7 +116,7 @@
 			\end{minted}
 
 	\section{Our Scenario}
-		Our network scenario is described in the following script: \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario_basic.py}}. Mininet makes use of a Python API to give users the ability to automate processes easily, or to develop certain modules at their convenience. For this and many other reasons, Mininet is a highly flexible and powerful tool for network emulation which is widely used by the scientific community.
+		Our network scenario is described in the following script \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario\_basic.py}}. Mininet makes use of a Python API to give users the ability to automate processes easily, or to develop certain modules at their convenience. For this and many other reasons, Mininet is a highly flexible and powerful tool for network emulation which is widely used by the scientific community.
 
 		\begin{itemize}
 			\item For more information about the API, see its \href{http://mininet.org/api/annotated.html}{manual}.
@@ -157,9 +157,9 @@
 			Let's break this big boy down:
 
 			\begin{itemize}
-				\item \texttt{> /dev/null} redirects the \texttt{stdout} file descriptor to a file located in \texttt{/dev/null}. This is a "special" file in Linux systems that behaves pretty much like a black hole. Anything you write to it just "disappears" :open_mouth:. This way we get rid of all the bloat caused by the network startup.
-				\item \texttt{2>&1} will make the \texttt{stderr} file descriptor point where the \texttt{stdout} file descriptor is currently pointing (\texttt{/dev/null}). Terminal emulators usually have both \texttt{stdout} and \texttt{stderr}"going into" the terminal itself so we need to redirect these two to be sure we won't see any output.
-				\item \texttt{&} makes the process run in the background so that you'll be given a new prompt as soon as you run the command.
+				\item \texttt{> /dev/null} redirects the \texttt{stdout} file descriptor to a file located in \texttt{/dev/null}. This is a "special" file in Linux systems that behaves pretty much like a black hole. Anything you write to it just "disappears". This way we get rid of all the bloat caused by the network startup.
+				\item \texttt{2>\&1} will make the \texttt{stderr} file descriptor point where the \texttt{stdout} file descriptor is currently pointing (\texttt{/dev/null}). Terminal emulators usually have both \texttt{stdout} and \texttt{stderr}"going into" the terminal itself so we need to redirect these two to be sure we won't see any output.
+				\item \texttt{\&} makes the process run in the background so that you'll be given a new prompt as soon as you run the command.
 			\end{itemize}
 
 			If you want to move the controller app back into the foreground so that you can kill it with \texttt{CTRL + C} you can run \texttt{fg} which will bring the last process sent to the background back to the foreground.
@@ -202,7 +202,7 @@
 				\label{f:ping_ok}
 			\end{figure}
 
-			As you can see in figure \ref{f:ping_ok} above, there is full connectivity in our scenario. You may have noticed how the first \textbf{ping} takes way longer than the other to get back to use. That is, its \textbf{RTT} (\textbf{R}ound \textbf{T}rip \textbf{T}ime) is abnormally high. This is due to the empty \textbf{ARP} tables we currently have \textit{AND} to the fact that we don't yet have a flow defined to handle \textbf{ICMP} traffic:
+			As you can see in figure \ref{f:ping_ok} there is full connectivity in our scenario. You may have noticed how the first  \textbf{ping} takes way longer than the other to get back to use. That is, its  \textbf{RTT} ( \textbf{R}ound  \textbf{T}rip  \textbf{T}ime) is abnormally high. This is due to the empty  \textbf{ARP} tables we currently have \textit{AND} to the fact that we don't yet have a flow defined to handle  \textbf{ICMP} traffic. We need to take a few steps to fix this:
 
 			\begin{itemize}
 				\item An \textbf{ARP} resolution between sender and receiver of the ping takes place so that the sender learns the next hop's \textbf{MAC} address.
@@ -216,12 +216,12 @@
 				\label{f:ryu_rcv}
 			\end{figure}
 
-			As you can see in figure \ref{f:ryu_rcv}, the controller's \textbf{stdout} (please see the [appendix](#appendix) to learn more about file descriptors) indicates the commands it has been instantiating according to the packets it has processed. In the end, for the first packet we will have to tolerate a delay due to \textbf{ARP} resolution and \textbf{flow} lookup and instantiation within the controller. The good thing is the rest of the packets will already have the destination \textbf{MAC} and the rules will already instantiated in the intermediate switches, so the new delay will be minimal.
+			As you can see in figure \ref{f:ryu_rcv}, the controller's \textbf{stdout} (please take a look at the appendix to learn more about file descriptors) indicates the commands it has been instantiating according to the packets it has processed. In the end, for the first packet we will have to tolerate a delay due to \textbf{ARP} resolution and \textbf{flow} lookup and instantiation within the controller. The good thing is the rest of the packets will already have the destination \textbf{MAC} and the rules will already instantiated in the intermediate switches, so the new delay will be minimal.
 
 	\section{Attack Time}
-		We have already talked about how to set up our scenario but we haven't got into breaking things (i.e the fun stuff :smiling_imp:). Our goal is to simulate a \textbf{DoS} (\textbf{D}enial \textbf{o}f \textbf{Service}) attack. Note that we usually refer to this kind of threats as \textbf{DDoS} attacks where the first \textbf{D} stands for \textbf{D}istributed. This second "name" implies that we have multiple machines trying to flood our own. We are going to launch the needed amounts of traffic from a single host so we would be making a mistake if we were talking about a distributed attack. All in all this is just a minor nitpick, the concept behind both attacks is exactly the same.
+		We have already talked about how to set up our scenario but we haven't got into breaking things (i.e the fun stuff  ). Our goal is to simulate a \textbf{DoS} (\textbf{D}enial \textbf{o}f \textbf{Service}) attack. Note that we usually refer to this kind of threats as \textbf{DDoS} attacks where the first \textbf{D} stands for \textbf{D}istributed. This second "name" implies that we have multiple machines trying to flood our own. We are going to launch the needed amounts of traffic from a single host so we would be making a mistake if we were talking about a distributed attack. All in all this is just a minor nitpick, the concept behind both attacks is exactly the same.
 		\newpar
-		We need to flood the network with traffic, great but... How should we do it? We already introduced the tool we are going to be using: \textbf{hping3}. This program was born as a TCP/IP packet assembler and analyser capable of generating ICMP traffic. Its biggest asset is being able to generate these ICMP messages as fast as the machine running it can: just what we need :japanese_goblin:.
+		We need to flood the network with traffic, great but... How should we do it? We already introduced the tool we are going to be using .
 		\newpar
 		The main objective is being able to classify the traffic in the network as a normal or an abnormal situation with the help of AI algorithms. For these algorithms to be effective we need some training samples so that they can "learn" how to regard and classify said traffic. That's why we need a second tool capable of generating "normal" ICMP traffic so that we have something to compare against. Good ol' \textbf{ping} is our pal here.
 
@@ -243,9 +243,9 @@
 								  ipBase = '10.0.0.0/8')
 				\end{minted}
 
-				Note how we need to limit each host's capacity by means of the CPU which is what we do through the }host} parameter in Mininet's constructor. We'll also need links with a }TCLink} type. We can achieve this thanks to the }link} parameter. This will let us impose the limits to the network capacity ourselves instead of depending on the host's machines capabilities.
+				Note how we need to limit each host's capacity by means of the CPU which is what we do through the \texttt{host} parameter in Mininet's constructor. We'll also need links with a \texttt{TCLink} type. We can achieve this thanks to the \texttt{link} parameter. This will let us impose the limits to the network capacity ourselves instead of depending on the host's machines capabilities.
 				\newpar
-				After fiddling with the overall constructor we also need to take care when defining the network links. We can find the following lines over at \textbf{src/scenario_basic.py}:
+				After fiddling with the overall constructor we also need to take care when defining the network links. We can find the following lines over at \textbf{src/scenario\_basic.py}:
 
 				\begin{minted}{python}
 					net.addLink(s1, h1, bw = 10)
@@ -258,9 +258,9 @@
 					net.addLink(s3, h6, bw = 10)
 				\end{minted}
 
-				We are fixing a \textbf{BW} for the links with the }bw} parameter. We have also chosen to assign a finite buffer size to the middle switches in an effort to get as close to reality as we possibly can. If the }max_queue_size} parameter hadn't been defined we would be working with "infinite" buffers at each switch's exit ports. Having these finite buffers will in fact introduce a damping effect in our tests as once you fill them up you can't push any more data through: the output queues are absolutely full... In a real-life scenario we would suffer huge packet losses at the switches and that could be used as a symptom as well but we haven't taken it into account for the sake of simplicity.
+				We are fixing a \textbf{BW} for the links with the \texttt{bw} parameter. We have also chosen to assign a finite buffer size to the middle switches in an effort to get as close to reality as we possibly can. If the \texttt{max\_queue\_size} parameter hadn't been defined we would be working with "infinite" buffers at each switch's exit ports. Having these finite buffers will in fact introduce a damping effect in our tests as once you fill them up you can't push any more data through: the output queues are absolutely full... In a real-life scenario we would suffer huge packet losses at the switches and that could be used as a symptom as well but we haven't taken it into account for the sake of simplicity.
 				\newpar
-				We fixed the queue lengths so that they were coherent with standard values. We decided to use a \textbf{500 packet} size because \textit{Cisco}'s (:satisfied:) queue lengths range from 64 packets to about 1000 as found \href{https://www.cisco.com/c/en/us/support/docs/routers/7200-series-routers/110850-queue-limit-output-drops-ios.html}{here}. We felt like 500 was an appropriate value in the middle ground. With all these restrictions our scenario would look like figure \ref{f:limited}.
+				We fixed the queue lengths so that they were coherent with standard values. We decided to use a \textbf{500 packet} size because \textit{Cisco}'s queue lengths range from 64 packets to about 1000 as found \href{https://www.cisco.com/c/en/us/support/docs/routers/7200-series-routers/110850-queue-limit-output-drops-ios.html}{here}. We felt like 500 was an appropriate value in the middle ground. With all these restrictions our scenario would look like figure \ref{f:limited}.
 
 				\begin{figure}
 					\centering
@@ -271,8 +271,8 @@
 
 				By inspecting the network dimensions we can see how we have a clear bottleneck... This "flaw" has been introduced on purpose as we want to clearly differentiate regular traffic from the one we experience when under attack.
 
-		\subsection{Getting Used to \textt{hping3}}
-			This versatile tool can be configured so that it can explore a given network, perform traceroutes, send pings or carry out out flood attacks on different network layers. All in all, it lets us craft our own packets and send them to different destinations at some given rates. You can even forge the source \textbf{IP} address to go full stealth mode :ghost:. We'll just send regular pings: \textbf{ICMP --> Echo request (Type = 8, Code = 0)} whilst increasing the rate at which we send them. This will in turn make the network core collapse making our attack successful.
+		\subsection{Getting Used to \texttt{hping3}}
+			This versatile tool can be configured so that it can explore a given network, perform traceroutes, send pings or carry out out flood attacks on different network layers. All in all, it lets us craft our own packets and send them to different destinations at some given rates. You can even forge the source \textbf{IP} address to go full stealth mode   \textbf{ICMP --> Echo request (Type = 8, Code = 0)} whilst increasing the rate at which we send them. This will in turn make the network core collapse making our attack successful.
 			\newpar
 			Check out this \href{https://tools.kali.org/information-gathering/hping3}{site} for more info on this awesome tool.
 
@@ -296,7 +296,7 @@
 				\item \texttt{-V}: Show verbose output (i.e show more information)
 				\item \texttt{-1}: Generate ICMP packets. They'll be ping requests by default
 				\item \texttt{-d 1400}: Add a bogus payload. This is not strictly needed but it'll help us use up the link's BW faster. We have chosen a 1400 B payload so as not to suffer fragmentation at the network layer.
-				\item \texttt{--faster}: If we used the \textt{flood} option we overwhelmed the virtualized network...
+				\item \texttt{--faster}: If we used the \texttt{flood} option we overwhelmed the virtualized network...
 			\end{itemize}
 
 			We would like to point out that \texttt{hping3} could have been invoked with the \texttt{--flood} option instead of \texttt{--faster}. When using \texttt{--flood} the machine will generate as many packets as it possibly can. This would be great in a world of rainbows but... The virtual network was quickly overwhelmed by the ICMP messages and packets began to be discarded everywhere. Event though this is technically a \textbf{DoS} attack gone right too it obscures the phenomena we are faster so we decided to use \texttt{--faster} as the rate it provides suffices for our needs.
@@ -317,7 +317,7 @@
 				sudo python3 scenario_basic.py
 			\end{minted}
 
-			Time to open terminals to both ICMP sources. We'll also fire up \texttt{Wireshark} on \textbf{Host4} to have a closer look at what's going on. Note the ampersand (\texttt{&}) at the end of the second command. It'll detach the \texttt{wireshark} process from the terminal so that we can continue running commands as we normally would. To do this we need to run:
+			Time to open terminals to both ICMP sources. We'll also fire up \texttt{Wireshark} on \textbf{Host4} to have a closer look at what's going on. Note the ampersand (\texttt{\&}) at the end of the second command. It'll detach the \texttt{wireshark} process from the terminal so that we can continue running commands as we normally would. To do this we need to run:
 
 			\begin{minted}{bash}
 				mininet> xterm h1 h2
@@ -338,7 +338,7 @@
 			\begin{figure}
 				\centering
 				\includegraphics[scale = 1]{net_down.png}
-				\caption{\textt{ICMP} traffic can't get through...}
+				\caption{\texttt{ICMP} traffic can't get through...}
 				\label{f:net_down}
 			\end{figure}
 
@@ -346,7 +346,7 @@
 
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{net:ok.png}
+				\includegraphics[scale = 1]{net_ok.png}
 				\caption{The network has recovered!}
 				\label{f:net_ok}
 			\end{figure}
@@ -354,9 +354,9 @@
 			We then see how the \textbf{DoS} attack against \textbf{Host4} has been successful. In order to facilitate issuing the needed commands we have prepared a couple of \texttt{python} scripts containing all the needed information so that we only need to run them and be happy. You can find them at:
 
 			\begin{itemize}
-				\item Attack: \href{https://github.com/GAR-Project/project/blob/master/src/ddos.py}{\texttt{src/ddos.py}}
-				\item Regular traffic: \href{https://github.com/GAR-Project/project/blob/master/src/normal.py}{\texttt{src/normal.py}}
-			\enf{itemize}
+				\item Attack \href{https://github.com/GAR-Project/project/blob/master/src/ddos.py}{\texttt{src/ddos.py}}
+				\item Regular traffic \href{https://github.com/GAR-Project/project/blob/master/src/normal.py}{\texttt{src/normal.py}}
+			\end{itemize}
 
 			With all this ready to rock we now need to focus on detecting these attacks and seeing how to possibly mitigate them.
 
@@ -371,7 +371,7 @@
 				For a previous project belonging to the same subject we were introduced to both \textbf{telegraf} and \textbf{influxdb}. The first one is a metrics agent in charge of collecting data about the host it's running on. It's entirely plug-in driven so configuring it is quite a breeze! The latter is a \textbf{DBMS} (\textbf{D}ata\textbf{B}ase \textbf{M}anagement \textbf{S}ystem) whose architecture is specifically geared towards time series, just what we need! The interconnection between the two is straightforward as one of \textbf{telegraf}'s plug-ins provides native support for \textbf{influxdb}. We'll have to configure both appropriately and we'll see it wasn't as easy as we once thought due to mininet getting in the way. We have come up both with a "hacky" solution and an alternative any Telecommunications Engineer would be prod of. Just kidding, but it uses networking concepts and not workarounds though.
 
 			\subsubsection{Leveraging Mininet's Shared Filesystem}
-				Have you ever felt like throwing yourself into \texttt{/dev/null} to never come back? That was pretty much our mood when trying to get a host within mininet's network to communicate with the outside world. In order to understand how we ended up "fixing" (it just works :grimacing:) everything we need to go back and take a look at our initial ideas and implementations.
+				Have you ever felt like throwing yourself into \texttt{/dev/null} to never come back? That was pretty much our mood when trying to get a host within mininet's network to communicate with the outside world. In order to understand how we ended up "fixing" (it just works  ) everything we need to go back and take a look at our initial ideas and implementations.
 				\newpar
 				We should not forget that we are looking at \texttt{ICMP} traffic in order to make predictions about the state of the network. We first thought about running \textbf{telegraf} on a network switch that was directly connected to the controller where our \textbf{InfluxDB} instance is running. The good thing about this scheme is that the telegraf process within the switches can communicate with the DB running in the controller through \texttt{HTTP}. This is due to the fact that we are invoking the \texttt{start()} method of the switches during the network configuration so even though there's no "real" link between them (we didn't create it by calling \texttt{addLink()}) they can still communicate.
 				\newpar
@@ -390,7 +390,7 @@
 			\subsubsection{Getting The Data To \texttt{InfluxDB}}
 				Instead of directly sending the output to an influxdb instance we are going to send it to a regular file thanks to the \textbf{file} output plug-in. This leads us directly to the configuration of the second telegraf instance.
 				\newpar
-				In this second process we'll be using the \textbf{tail} input plug-in. Just like Linux's \texttt{tail}, this command will continuously read a file so that it can use it as an input data stream. Instead of polling the file continuously we chose to instead notify telegraf to read it when changes took place. This leads to a more efficient use of system resources overall. The output plug-in we'll be using is now good ol' \textbf{influxdb}. We'll point it to the influxdb instance running on the \texttt{controller\texttt{ VM so that everything is correctly connected.
+				In this second process we'll be using the \textbf{tail} input plug-in. Just like Linux's \texttt{tail}, this command will continuously read a file so that it can use it as an input data stream. Instead of polling the file continuously we chose to instead notify telegraf to read it when changes took place. This leads to a more efficient use of system resources overall. The output plug-in we'll be using is now good ol' \textbf{influxdb}. We'll point it to the influxdb instance running on the \texttt{controller} VM so that everything is correctly connected.
 				\newpar
 				The structure of the system we are dealing with is shown in figure \ref{f:telegraf_connections}.
 
@@ -404,9 +404,9 @@
 				We are now ready to start querying our database and begin working with the acquired information.
 
 			\subsubsection{A Note On The Sampling Period}
-				When configuring the interconnection between both telegraf instances we initially left the default \texttt{10 s} refresh interval in both. When we read the data we were getting in the DB we noticed some "strange" results in between correct readings so we decided to fiddle with these sampling times in case they were interfering with each other. As we are communicating both processes by means of a file the timing for reading and writing can be critical... We fixed a \texttt{2 s} sampling interval in "mininet's" telegraf process and a \texttt{4 s\texttt{ refresh rate in the VM's instance. This means that we are going to get 2 entries in the DB with each update!
+				When configuring the interconnection between both telegraf instances we initially left the default \texttt{10 s} refresh interval in both. When we read the data we were getting in the DB we noticed some "strange" results in between correct readings so we decided to fiddle with these sampling times in case they were interfering with each other. As we are communicating both processes by means of a file the timing for reading and writing can be critical... We fixed a \texttt{2 s} sampling interval in "mininet's" telegraf process and a \texttt{4 s} refresh rate in the VM's instance. This means that we are going to get 2 entries in the DB with each update!
 				\newpar
-				After running some tests we found everything was working flawlessly now :ok_woman: so we just left it as is.
+				After running some tests we found everything was working flawlessly now   so we just left it as is.
 
 		\subsection{Second Step: Generating the Training Datasets}
 			\subsubsection{Weren't we using the received \texttt{ICMP} messages as the input?}
@@ -414,7 +414,7 @@
 				\newpar
 				After debating it for a while we settled on including the average of the derivative of the incoming packets as a parameter too. As the mean will vary slowly due to the disparity of the data generated by both situations we'll be more likely to consider the aftermath as an attack too. Even though we may not be subject to very high incoming packet variations any more we'll take a while to resume a normal operation and we decided to let this "recovery time" play a role in the SVM's prediction.
 
-			\subsubsection{Writting a Script: \texttt{src/data_gathering.py}}
+			\subsubsection{Writting a Script: \texttt{src/data\_gathering.py}}
 				Once we have the desired data stored in the DB using the SVM becomes a matter of reading it and formatting it so that the SVM "likes it". In order to make the process faster we decided to write a simple python script that uses influxdb's python API to read the data and prepare a \textbf{CSV} (\textbf{C}omma \textbf{S}eparated \textbf{V}alues) to later be read by the script implementing the SVM.
 				\newpar
 				The defining quality of training data is meaningfulness. The SVM's predictions will only be as good as the training it received so we need to provide insightful data if we are to get any consistent results.
@@ -423,30 +423,30 @@
 				\newpar
 				Generating the DB is just a matter of reading the DB and outputting the read data to a text file with a \texttt{.csv} extension.
 
-		\subsection{Third Step: Putting it all together -> \texttt{src/traffic_classifier.py}}
+		\subsection{Third Step: Putting it all together -> \texttt{src/traffic\_classifier.py}}
 			\subsubsection{A Tiny Bit of Math}
-				As one of the parameters we feed the \textbf{SVM} is the mean of the data we get from the terminal we tried to come up with an scalable way of computing it as more samples came instead of recomputing the mean taking all the values into acount. This naive approach would have needed an ever growing array to store all the data, meaning it would have eventually exhausted the machine's resources... By taking a look at the estimator for the mean ($\^{x}$) we tried to compute $\Delta\^{x}$ by taking its previous values into account. Working with the equations yielded:
+				As one of the parameters we feed the \textbf{SVM} is the mean of the data we get from the terminal we tried to come up with an scalable way of computing it as more samples came instead of recomputing the mean taking all the values into acount. This naive approach would have needed an ever growing array to store all the data, meaning it would have eventually exhausted the machine's resources... By taking a look at the estimator for the mean ($\hat{x}$) we tried to compute $\Delta\hat{x}$ by taking its previous values into account. Working with the equations yielded:
 
 				\begin{equation}
 					\label{eq1}
 					\begin{split}
-						\^{x}_f & = \^{x}_o + \Delta\^{x} \rightarrow \Delta\^{x} = \^{x}_f - \^{x}_o = \\
+						\hat{x}_f & = \hat{x}_o + \Delta\hat{x} \rightarrow \Delta\hat{x} = \hat{x}_f - \hat{x}_o = \\
 								& = \frac{\alpha + \omega}{\beta + 1} - \frac{\alpha}{\beta} = \\
 								& = \frac{\beta(\alpha + \omega) - \alpha(\beta + 1)}{\beta(\beta + 1)} = \\
-								& = \frac{\alpha + \omega - \^{x}_o\beta - \^{x}_o}{\beta + 1} = \\
-								& = \frac{\omega - \^{x}_o}{\beta + 1} \rightarrow \\
-								& \rightarrow \Delta\^{x} = \frac{\omega - \^{x}_o}{\beta + 1}
+								& = \frac{\alpha + \omega - \hat{x}_o\beta - \hat{x}_o}{\beta + 1} = \\
+								& = \frac{\omega - \hat{x}_o}{\beta + 1} \rightarrow \\
+								& \rightarrow \Delta\hat{x} = \frac{\omega - \hat{x}_o}{\beta + 1}
 					\end{split}
 				\end{equation}
 
-				As seen in \ref{eq1} all we need to do is compute the new mean as $\^{x}_f = \^{x}_o + \Delta\^{x}$ and to compute $\Delta\^{x}$ we only need the previous mean ($\^{x}_o$) and values $\omega,\ \beta$ which are the incoming sample's value and the previous number of samples respectively. This let's us continue to compute the mean indefinitely as long as we store the previous mean and number of recorded samples. You can find this procedure in the \texttt{work_time()} method within the \texttt{src/traffic_classifier.py} script.
+				As seen in \ref{eq1} all we need to do is compute the new mean as $\hat{x}_f = \hat{x}_o + \Delta\hat{x}$ and to compute $\Delta\hat{x}$ we only need the previous mean ($\hat{x}_o$) and values $\omega,\ \beta$ which are the incoming sample's value and the previous number of samples respectively. This let's us continue to compute the mean indefinitely as long as we store the previous mean and number of recorded samples. You can find this procedure in the \texttt{work\_time()} method within the \texttt{src/traffic\_classifier.py} script.
 
 			\subsubsection{Writing the Script}
-				Apart from the scenario's setup the most important program we wrote is the \texttt{traffic classifier} without a doubt. The file defines the \texttt{gar_py()} class which includes a SVM instance, the query used for getting data and many other configuration parameters as its attributes. This let's us use this same technique in other scenarios, in other words, we are increasing this solution's portability.
+				Apart from the scenario's setup the most important program we wrote is the \texttt{traffic\_classifier} without a doubt. The file defines the \texttt{gar\_py()} class which includes a SVM instance, the query used for getting data and many other configuration parameters as its attributes. This let's us use this same technique in other scenarios, in other words, we are increasing this solution's portability.
 				\newpar
 				The class' constructor will limit itself to initializing its attributes and training the SVM by reading the training files we have already prepared. The main thing to note here is how we need to conform to the input format accepted by the SVM itself.
 				\newpar
-				Once it's trained we just need to call the class's \texttt{work_time()} method which will enter an infinite loop whose operation can be summarised into these points:
+				Once it's trained we just need to call the class's \texttt{work\_time()} method which will enter an infinite loop whose operation can be summarised into these points:
 
 				\begin{enumerate}
 					\item Read the last 3 entries in the DB.
@@ -468,13 +468,13 @@
 
 				We've also written a signal handler to allow for a graceful exit when pressing \texttt{CTRL + C}.
 				\newpar
-				And with that we are finished! :tada: We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
+				And with that we are finished!   We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
 
 	\section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 		We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
 
 		\subsection{Command: \texttt{EOF} + \texttt{quit} + \texttt{exit}}
-			These three commands are used for the same thing, to exit the \textbf{Mininet CLI} and finish the emulation. The source code of these three commands does not differ much, \textbf{EOF} and \textbf{quit} end up using the \texttt{do_exit} function at the end, so we could say that they are a bit repetitive. They offer several ways to kill the emulation so that people with different backgrounds feel "at \texttt{~}". The source code taking care of exiting is:
+			These three commands are used for the same thing, to exit the \textbf{Mininet CLI} and finish the emulation. The source code of these three commands does not differ much, \textbf{EOF} and \textbf{quit} end up using the \texttt{do\_exit} function at the end, so we could say that they are a bit repetitive. They offer several ways to kill the emulation so that people with different backgrounds feel "at \texttt{~}". The source code taking care of exiting is:
 
 			\begin{minted}{python}
 				def do_exit( self, _line ):
@@ -542,7 +542,7 @@
 			\end{figure}
 
 		\subsection{The Rest of the Commands}
-			Someone once told me \textbf{manpages} were my friends. This doesn't apply here directly but you get the idea. If you don't know what a command does try running it without arguments and you will be presented with a help section hopefully. If your machine blows up... It wasn't our fault! (It really shouldn't though :ok_woman:). You can also issue \texttt{help <command_name>} from the \textbf{mininet CLI} to gather more intel. You can also contact us directly. We didn't want this section to grow too large and we believe the above commands are more than enough for our purposes.
+			Someone once told me \textbf{manpages} were my friends. This doesn't apply here directly but you get the idea. If you don't know what a command does try running it without arguments and you will be presented with a help section hopefully. If your machine blows up... It wasn't our fault! (It really shouldn't though  ). You can also issue \texttt{help <command\_name>} from the \textbf{mininet CLI} to gather more intel. You can also contact us directly. We didn't want this section to grow too large and we believe the above commands are more than enough for our purposes.
 
 	\section{Mininet's Internals}
 
