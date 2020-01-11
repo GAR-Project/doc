@@ -1,25 +1,34 @@
-% TODO: Write notes explaining the provisioning! Ansible and Vagrant!
 \documentclass[12pt]{article}
 
+% Extend the usable characters beyond ASCII
 \usepackage[utf8]{inputenc}
-%\usepackage[smartEllipses]{markdown}
+
+% Code colorizer. You need to install python3-pygments locally...
 \usepackage{minted}
+% Minted's color scheme
 \usemintedstyle{tango}
+
+% Let us break equations into lines
 \usepackage{amsmath}
 
+ % Insert images
 \usepackage{graphicx}
+% Look for images here
 \graphicspath{{../img/}}
 
+ % Let's use links!
 \usepackage{hyperref}
+% Link style configuration
 \hypersetup{
 	colorlinks = true,
 	linkcolor = blue,
 	filecolor = magenta,
 	urlcolor = cyan,
 }
-
+% More config for the links
 \urlstyle{same}
 
+% Add a blank line between paragraphs
 \newcommand{\newpar} {
     \vskip 1cm
 }
@@ -47,9 +56,13 @@
 \end{abstract}
 
 \tableofcontents
+% We need a new page or otherwise the table of contents won't fit...
+\newpage
 
 \section{Notes}
 	Throughout the document we will always be talking about 2 virtual machines (VMs) on which we implement the scenario we are discussing. In order to keep it simple we have called one VM \textbf{controller} and the other one \textbf{test}. Even though the names may seem kind of random at the moment we promise they're not. Just keep this in mind as you continue reading.
+	\newpar
+	The following document discusses the project version we have uploaded to GitHub. In order to simplify deployment we have decided to automatize the installation of every needed component by means of \texttt{bash} scripts. Our intention was to use Ansible but as it's not embedded in Vagrant we prefered not to make people wanting to use our work install yet another tool. As we have studied configuration management in our subject we'll discuss the playbooks used for deployment when presenting our work to the class bit it will \textbf{NOT} be talked about here. As the explanation is pretty similar to the one given in the last lab practice and the playbooks are essentially those written by \textit{Pablo Collado} we believe his lab report is enough to slah any doubts the user of the playbooks may come across. In order not to make this document longer than it already is we haven't included it for simplicity. Had it be required we would be pleased to hand it in to anyone interested.
 
 \section{Installation Methods}
 	We have created a \textbf{Vagrantfile} through which we provide each machine with the necessary scripts to install and configure the scenario. By working in a virtualized environment we make sure we all have the exact same configuration so that tracing and fixing errors becomes much easier. If you do not want to use Vagrant as a provider you can follow the native installation method we present below.
@@ -572,7 +585,7 @@
 	\subsection{Network Namespaces}
 		A \textbf{network namespace} consists of a logical network stack replica that by default is composed of the \textbf{Linux kernel}, paths, \textbf{ARP} tables, \textbf{Iptables} and network interfaces.
 		\newpar
-		Linux starts with a default \textbf{Network namespace} which is the one everyday users need for example. This namespace includes a routing table, an ARP table, the iptables and any network interfaces it might need. The key here is that it is also possible to create more non-default network namespaces. We can then create new devices in those namespaces, or move an existing devices from one namespace to another. This is a rather complex virtualization concept provided by the Linux kernel and we will not delve any further. It is quite interesting if you ask us though... :fearful:
+		Linux starts with a default \textbf{Network namespace} which is the one everyday users need for example. This namespace includes a routing table, an ARP table, the iptables and any network interfaces it might need. The key here is that it is also possible to create more non-default network namespaces. We can then create new devices in those namespaces, or move an existing devices from one namespace to another. This is a rather complex virtualization concept provided by the Linux kernel and we will not delve any further. It is quite interesting if you ask us though...
 		\newpar
 		In this way, each network element has its own network namespace, i.e. each element has its own network stack and interfaces. So at the networking level, one could say, they are independent elements. The key is that every node shares the same process namespace, IPCs namespace, filesystem... We are virtualizing up to the network layer only. This is the true power of the network stack approach to things. As Vegeta would put it: "The network namespace's power is over 9000!" just like we see him say in figure \ref{f:ns_power}.
 
@@ -585,7 +598,7 @@
 
 		In figure \ref{f:x_htop} we can see how we created a process in the host machine with the \texttt{sleep} command whose \textbf{PID} is \texttt{20483}. If the network elements were really isolated we wouldn't be able to see this process from other machines but the reality is different with mininet as we discussed.
 		\newpar
-		This is something to assume when working with Mininet's low-cost emulation :sweat_smile:. This approach would be lacking in other scenarios but it is more than enough to emulate a network. This fact casts some doubts on how to integrate our data collection system with \textbf{telegraf} in the different network elements without any incompatibilities...
+		This is something to assume when working with Mininet's low-cost emulation. This approach would be lacking in other scenarios but it is more than enough to emulate a network. This fact casts some doubts on how to integrate our data collection system with \textbf{telegraf} in the different network elements without any incompatibilities...
 		\newpar
 		That's why we decided to take the controller "out of" the machine where Mininet was going to run so as to avoid problems with by-passes by IPCs from telegraf to the InfluxDB database. The only thing left for us to do is to figure out how to correctly install and configure telegraf so that everything works as intended.
 
@@ -673,22 +686,22 @@
 			So we can say that the \texttt{ip netns list} command does work correctly. But then, where are the network namespaces used by Mininet?
 
 		\subsubsection{So where are Mininet's Network Namespaces located?}
-			Well, to answer this question, we must first understand one thing. The \texttt{ip' tool with its \textbf{netns} module acts as a wrapper when we work with Network namespaces. Namespaces (there are several \href{http://man7.org/linux/man-pages/man7/network_namespaces.7.html}{types}) have a finite life, that is, they live as long as they are \textbf{referenced}. A namespace can be referenced in \textbf{three} ways:
+			Well, to answer this question, we must first understand one thing. The \texttt{ip} tool with its \textbf{netns} module acts as a wrapper when we work with Network namespaces. Namespaces (there are several \href{http://man7.org/linux/man-pages/man7/network_namespaces.7.html}{types}) have a finite life, that is, they live as long as they are \textbf{referenced}. A namespace can be referenced in \textbf{three} ways:
 
 			\begin{itemize}
 				\item As long as there's \textbf{a process running} inside this namespace.
-				\item As long as you have opened a file descriptor to the namespace file. (}/proc/{pid}/ns/{type_namespace}\texttt{)
-				\item As long as there is a bind mount of the file (}/proc/{pid}/ns/{namespace type}\texttt{) of the namespace in question.
+				\item As long as you have opened a file descriptor to the namespace file. (\texttt{/proc/{pid}/ns/{type\_namespace}})
+				\item As long as there is a bind mount of the file (\texttt{/proc/{pid}/ns/{namespace type}}) of the namespace in question.
 			\end{itemize}
 
-			If none of these conditions are met, the namespace in question is \textbf{deleted}. If it is a }net' type namespace (a.k.a Network Namespace) those interfaces that are in the disappearing namespace will return to the default namespace. Once we understand this concept, we must think about the nature of the Network namespaces that Mininet creates.
+			If none of these conditions are met, the namespace in question is \textbf{deleted}. If it is a \texttt{net} type namespace (a.k.a Network Namespace) those interfaces that are in the disappearing namespace will return to the default namespace. Once we understand this concept, we must think about the nature of the Network namespaces that Mininet creates.
 			\newpar
 			Mininet, when is launched it creates an emulated network, when is closed it should disappear, this process should be as light and fast as possible to provide a better user experience. The nature of Mininet's needs leads us to believe that the creation and destruction of network namespaces is associated with the first condition of referencing a namespace. That is, there would be no point in making mounts or softlinks that will have to be removed later, as this would mean a significant workload for large network emulations and an increase in the time spent cleaning up the system once the emulation is complete. In addition, we must take into account that there is a third condition that is quite suitable with Mininet's needs, since only one process is needed running per Network namespace, and when cleaning we must only finish with the processes that \textit{support} the Network namespaces.
 
 		\subsubsection{Just a hypothesis?}
 			Well, according to the above reasoning, we should see several processes that are created at the time of the build-up of our scenario in Mininet. These processes should each have a Network Namespace file, \texttt{/proc/{pid}/ns/net}, with a different \textbf{inode} for those processes running in different Network namespaces. Where do we start looking?
 
-			Let's set the scenario up if we haven't set it up before, list all processes, and filter by the name of \textit{mininet}. Let's see what we find :grimacing:.
+			Let's set the scenario up if we haven't set it up before, list all processes, and filter by the name of \textit{mininet}. Let's see what we find.
 
 			\begin{minted}{bash}
 	sudo ps aux | grep mininet
@@ -702,8 +715,8 @@
 				\label{f:netns_procs}
 			\end{figure}
 
-			Wow :hushed:! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
-			\nerwpar
+			Wow! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
+			\newpar
 			If we inspect the \texttt{/proc/{pid}/ns/net} file for each process we can see which ones are in a different network namespace depending on the value of the inode. For example, let's check the processes associated to hosts 1 and 2 can be seen in figures \ref{host1_procs} and \ref{host2_procs} respectively.
 
 			\begin{figure}
@@ -740,7 +753,7 @@
 
 			If we look at the command entered in each network namespace it is the same, \texttt{ip addr show} (a.k.a \texttt{ip a s}). With this command we can list all the addresses assigned to each interface of the Network namespace. The result obtained from the execution of each command is the expected one, in the Network namespace of the \textbf{Host1} we can see that the interface \texttt{h1-eth0} exists, and in the Network namespace of the \textbf{Host2} the interface \texttt{h2-eth0}. With this test we conclude with the existence of the Network namespace that Mininet uses.
 			\newpar
-			Additionally we can corroborate our hypothesis by changing the "\textit{verbosity}" of our script, where we build the whole scenario topology, \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario_basic.py}}, we can change the level of \texttt{info} to \texttt{debug}, and launch the script again.
+			Additionally we can corroborate our hypothesis by changing the "\textit{verbosity}" of our script, where we build the whole scenario topology, \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario\_basic.py}}, we can change the level of \texttt{info} to \texttt{debug}, and launch the script again.
 
 			\begin{minted}{python}
 	if __name__ == '__main__':
@@ -758,9 +771,9 @@
 			As you can see in the execution output from figure \ref{f:debug}, \texttt{veth} is created (\textbf{V}virtual \textbf{Eth}ernet devices), and the different processes that \textit{will} support the different Network Namespaces. Furthermore, it has been possible to check how the \texttt{tc} (\textbf{T}raffic \textbf{C}controller) is used to establish the bandwidth and maximum queue limits to the links in the scenario.
 
 		\subsubsection{So, is it possible to use \texttt{iproute2} with Mininet?}
-			The quick and easy answer in the current state would be that \textbf{no}. We can always make use of the Python API to run things inside a network element or if not, we can ultimately open the Mininet CLI, open an xterm and throw things by hand, or as we have done before make use of the \texttt{nsenter' tool. 
+			The quick and easy answer in the current state would be that \textbf{no}. We can always make use of the Python API to run things inside a network element or if not, we can ultimately open the Mininet CLI, open an xterm and throw things by hand, or as we have done before make use of the \texttt{nsenter} tool. 
 			\newpar
-			So, there is no solution :unamused:? Well, almost everything has a solution, it depends on us to how far we want to go to fix things. Let's see how we can enable the Network namespace of \textbf{Host1} to be visible for \texttt{ip netns}.
+			So, there is no solution ? Well, almost everything has a solution, it depends on us to how far we want to go to fix things. Let's see how we can enable the Network namespace of \textbf{Host1} to be visible for \texttt{ip netns}.
 			\newpar
 			First we must locate the PID of the bash that holds the Host1 Network Namespace. In our case it is the following:
 
@@ -856,6 +869,68 @@
 			\label{f:scenario_kernel}
 		\end{figure}
 
-		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace :relaxed: .
+		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace.
+
+\section{Troubleshooting}
+	\begin{itemize}
+		\item If we are to use a terminal emulator without an \textbf{X server} installed or properly configured the \textbf{miniedit} tool will not run. This tool presents us with a GUI we can use to define our network and then it'll generate a script that brings it up for us. If we are to reroute the \textbf{stdout} of a VM we will need to set the \texttt{\$DISPLAY} variable accordingly as \textbf{miniedit} used \textbf{tkinter} and it needs it to run correctly.
+		\item If there are problems when launching the scenario try to clean up the previous environment. If we exit the mininet CLI by issuing the \texttt{quit} everything should be deleted correctly, otherwise we can always clean it up ourselves by running: \mint{bash}|sudo nm -c|. You can take a look at the output in figure \ref{f:mn_clean}.
+	\end{itemize}
+
+	\begin{figure}
+		\centering
+		\includegraphics[scale = 1]{mn_clean.png}
+		\label{f:mn_clean}
+	\end{figure}
+
+\section{Appendix}
+	We have decided to prepare an appendix so that we can shed some light on obscure topics not directly related to the project itself. We'll talk about tangential components of the project so that we can have a clearer idea of what's going on in the background and you can get a better grasp of the tools we have employed. It's a win win!
+
+	\subsection{The Vagrantfile}
+		I bet you have heard about \texttt{Virtualbox} this wonderful program lets us virtualize an entire computer inside our own so that we can try new Linux-based distros, use a Windows OS from Linux or just "create" a server farm for our own personal needs amongst many other use cases. These "virtual computers" are called \textbf{Virtual Machines} or \textbf{VM}s in \texttt{Virtualbox} lingo. The "bad" thing is that \texttt{Virtualbox} only offers a \textbf{GUI} (\textbf{G}raphical \textbf{U}ser \textbf{I}nterface) to manage new and existing VMs which makes the process extremely slow and changes it with each new update (the window titles vary, the menus are in different places...). This poses no problem at all to the average user but it becomes a nuisance in scenarios like ours.
+		\newpar
+		Another point of concern is the VM's provisioning: How can we get files from the host machine into the VM? We commonly used shared folders between the host machine and the VM but the set-up process can be a real pain. Is there any hope left in the galaxy? Yes: Help me \texttt{Vagrant}, you are my only hope!
+		\newpar
+		We can think of \texttt{Vagrant} as a wrapper for \texttt{Virtualbox} that let's us describe the VM's we want in a file called the \texttt{Vagrantfile}. We then run \texttt{Vagrant} with this file as an input and everything will be set up for us! By changing the \texttt{Vagrantfile} we can modify every VM in our topology. This includes provisioning new files, changing their memory, hostname, OS... This allows for a much more reproducible environment and hence a great portability.
+		\newpar
+		The \texttt{Vagrantfile} itself is written in \texttt{ruby}. It's contents are mostly in plain English and we have included comments for the tricky parts so as to make everything as clear as possible. You can even use this \texttt{Vagrantfile} as a template for your own projects!
+
+	\subsection{File Struct: \texttt{stdout} and friends}
+		What's a file struct? We can think of it as an information bundle describing a place we can write data to and read data from. We can employ these file descriptors to communicate our programs with the exterior world by means of a file. In \texttt{C} we can open files through their file descriptors which we create thanks to the \texttt{fopen()} function. If you take a closer look at the documentation you will see the type returned by \texttt{fopen()} is in fact a pointer to a \texttt{FILE struct} (i.e a \texttt{FILE*}). This \texttt{FILE struct} contains info about the file itself: Have we reached the \texttt{End Of File} mark?, where are we going to read/write with our next instruction?, has there been any error when reading/writing data? This will let us handle our file in any way we want!
+		\newpar
+		If you think about it we are constantly writing to the terminal from our programs using functions like \texttt{printf()} in \texttt{C} and \texttt{print()} in \texttt{python3}. Do you remember opening a file descriptor to be able to write to the terminal? I bet not! This is because our running programs are given 3 default file descriptors: \texttt{stdout}, \texttt{stdin} and \texttt{stderr}. These are connected to the terminal running the program (usually), the keyboard and the terminal as well (usually) respectively. If you have used \texttt{C} you may go ahead and try to call \texttt{fprintf()} and pass \texttt{stdout} as the file descriptor (the first argument). You'll see that you'll be writing to the screen! We can then see how both \texttt{stdout} and \texttt{stderr} are output file descriptors but \texttt{stdin} is used for reading keyboard input. As we are mainly concerned with \texttt{stdout} we won't go into much detail here.
+		\newpar
+		Why do we have two file descriptors "attached" to the terminal you ask? This let's us separate a programs terminal output into 2 classes: normal output and error/debugging output. Even though both would appear in the terminal if we didn't take any further action we can redirect \texttt{stderr} to a file for later inspection which is a common practice. This redirection is carried out when invoking the program from a terminal. The following command would redirect \texttt{My\_prog.ex}'s \texttt{stderr} output to a file called \texttt{I\_mesed\_up.txt}:
+
+		\begin{minted}{bash}
+	./My_prog.ex 2>I_messed_up.txt
+		\end{minted}
+
+		Now, a file struct is an abstraction used by \textbf{C}. We've previously said that \texttt{fopen()} returned a pointer, that is, a memory address. The things is that Linux itself knows nothing about a \texttt{FILE} struct, it only understands file descriptors which are a simple integer. Now the key aspect is to find out the relation between these \texttt{FILE} structs and the corresponding file descriptors. Even though we haven't dug any deeper we believe there must be some kind of "map" or "vector" somewhere that can be indexed with each file descriptor to get the address of each file struct. We may be outright wrong, but finding a \texttt{FILE**} somewhere whose indexes are file descriptors wouldn't be much of a surprise. Anyway, we have some predefined file descriptors we can use when invoking commands. These are:
+
+		\begin{itemize}
+			\item \texttt{stdin}: \texttt{0}
+			\item \texttt{stdout}: \texttt{1}
+			\item \texttt{stderr}: \texttt{2}
+		\end{itemize}
+
+		You can even redirect a file descriptor to the place where another is pointing. Take care with the order used to carry out these redirections! The following would redirect \texttt{stdout} to where \texttt{stderr} is pointing:
+
+		\begin{minted}{bash}
+	./My_prog.ex 2>I_messed_up.txt 1>&2
+		\end{minted}
+
+		We hope to have shed some light on how file descriptors work, what they are and how to use them!
+
+\section{Authors}
+
+	\begin{itemize}
+		\item \textbf{David Carrascal}: \href{https://github.com/davidcawork}{GitHub Profile}
+		\item \textbf{Adrián Guerrero}: \href{https://github.com/adrihamel}{GitHub Profile}
+		\item \textbf{Artem Strilets}: \href{https://github.com/pcolladosoto}{GitHub Profile}
+		\item \textbf{Pablo Collado}: \href{https://github.com/ArtemSSOO}{GitHub Profile}
+	\end{itemize}
+
+\section{Bibliography (TODO)}
 
 \end{document}
