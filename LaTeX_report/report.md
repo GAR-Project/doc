@@ -157,7 +157,7 @@ Let's break this big boy down:
 If you want to move the controller app back into the foreground so that you can kill it with `CTRL + C` you can run `fg` which will bring the last process sent to the background back to the foreground.
 
 
-![ryu_up](../img/controller_ex.png "The controller is now running")
+![ryu](../img/controller_ex.png "The controller is now running")
 
 Once the controller is up we are going to execute the network itself, to do so launch the aforementioned script from the `test` machine:
 
@@ -165,7 +165,7 @@ Once the controller is up we are going to execute the network itself, to do so l
 sudo python3 scenario_basic.py
 ```
 
-![mininet_up](../img/mininet_up.png "Mininet is UP")
+![mininet-up](../img/mininet_up.png "Mininet is UP")
 
 Notice how we have opened **Mininet CLI** from the `test` machine. We can perform many actions from this command line interface. The most useful ones are detailed below.
 
@@ -179,7 +179,7 @@ mininet> h1 ping h3
 mininet> pingall
 ```
 
-![ping_ok](../ping_ok.png "Mininet is working OK")
+![ping_ok](../img/ping_ok.png "Mininet is working OK")
 
 As you can see in the image above, there is full connectivity in our scenario. You may have noticed how the first **ping** takes way longer than the other to get back to use. That is, its **RTT** (**R**ound **T**rip **T**ime) is abnormally high. This is due to the empty **ARP** tables we currently have *AND* to the fact that we don't yet have a flow defined to handle **ICMP** traffic:
 
@@ -187,7 +187,7 @@ As you can see in the image above, there is full connectivity in our scenario. Y
 
 * In addition, the **ICMP** message (ping-request) will be redirected to the driver (a.k.a controller) to decide what to do with the packet as the switches don't yet have a **flow** to handle this traffic type. This way the controller will, when it receives the packet, instantiate a set of rules on the switches so that the **ICMP** messages are routed from one host to the other.
 
-![ryu_packet_in](../ryu_rcv.png "Ryu is configuring flows")
+![ryu_packet_in](../img/ryu_rcv.png "Ryu is configuring flows")
 
 As you can see, the controller's **stdout** (please see the [appendix](#appendix) to learn more about file descriptors) indicates the commands it has been instantiating according to the packets it has processed. In the end, for the first packet we will have to tolerate a delay due to **ARP** resolution and **flow** lookup and instantiation within the controller. The good thing is the rest of the packets will already have the destination **MAC** and the rules will already instantiated in the intermediate switches, so the new delay will be minimal.
 
@@ -483,10 +483,7 @@ Linux starts with a default **Network namespace** which is the one everyday user
 
 In this way, each network element has its own network namespace, i.e. each element has its own network stack and interfaces. So at the networking level, one could say, they are independent elements. The key is that every node shares the same process namespace, IPCs namespace, filesystem... We are virtualizing up to the network layer only. This is the true power of the network stack approach to things. As Vegeta would put it: "The network namespace's power is over 9000!".
 
-<p align="center">
-    <img src="https://i.imgur.com/C5X6bis.gif" width="50%">
-</p>
-
+![vegeta](../img/vegeta.png)
 
 In the next image we can see how we created a process in the host machine with the `sleep` command whose **PID** is `20483`. If the network elements were really isolated we wouldn't be able to see this process from other machines but the reality is different with mininet as we discussed.
 
@@ -494,24 +491,13 @@ This is something to assume when working with Mininet's low-cost emulation :swea
 
 That's why we decided to take the controller "out of" the machine where Mininet was going to run so as to avoid problems with by-passes by IPCs from telegraf to the InfluxDB database. The only thing left for us to do is to figure out how to correctly install and configure telegraf so that everything works as intended.
 
-<!-- ![example](https://i.imgur.com/4ihZdsP.png) -->
-
-<p align="center">
-    <img src="https://i.imgur.com/4ihZdsP.png">
-</p>
+![x_htop](../img/x_htop.png "A lazy process...")
 
 ## Mininet Internals (II) <a name="mininet_internals_II"></a>
 
-<div style="text-align: justify">
-
 In this second part on the internal operation of Mininet, we will investigate the Kernel-level topology recreated by Mininet to set up our scenario. Finally, we will explain the different ways to raise services in the different Network namespaces, necessary to collect information with `telegraf`. 
 
-</div>
-
 ### Is Mininet using Network Namespaces?
-
-<div style="text-align: justify">
-
 
 We have previously introduced that Mininet makes use of Network namespaces as a method to virtualize network stacks independent of each other, so that we can emulate networks at a minimum cost, but how can we be so sure that it really makes use of them? Here are the steps to verify whether or not Mininet is using Network namespaces.
 
@@ -525,7 +511,6 @@ sudo python3 scenario_basic.py
 ryu-manager ryu.app.simple_switch_13
 ```
 
-
 Now that we've set the scenario up we should be able to see if there are any Network namespaces on our machine, to do this we'll use the **iproute2** toolkit. Within this pack we will keep the most famous tool, `ip`. The `ip` tool is becoming established in the new Linux distributions as the de facto tool to work on everything related to Networking in a Linux environment. In the latest versions of Ubuntu for example, the `ifconfig` command is starting to be replaced by the iproute2 toolkit (a.k.a `ip`). This tool has many modules, for more information see its manual:
 
 *    Tool manual [`ip`](https://linux.die.net/man/8/ip)
@@ -537,22 +522,13 @@ sudo ip netns list
 ```
 Knowing the command to list Network Namespaces, and having previously set up the scenario, let's check if there really are Network Namespaces created on our machine: 
 
-![netns_list](https://i.imgur.com/yFSdQ1H.png)
-
-<br>
+![netns_list](../img/netns_list.png)
 
 Oops :joy_cat:, it seems that there is no Network namespace created, maybe, **Mininet doesn't work as we said before?** First of all, let's calm down, we don't have to rewrite all the documentation.
 
-<p align="center">
-<img src="https://i.imgur.com/lBcFDBt.jpg" alt="calm" width="30%">
-</p>
-</div>
-
-<br>
+![calm_tux](../img/calm_tux.jpg "Just chilling")
 
 #### Not today :wink:
-
-<div style="text-align: justify">
 
 The problem that the command `ip netns list` **doesn't** give us information, is that mininet is not creating the required softlink for the tool to be able to list the network namespaces, if we read the [documentation](http://man7.org/linux/man-pages/man8/ip-netns.8.html) we can find out that `ip netns list` reads from the path `/var/run/netns/` where all the named network namespaces are placed. 
 
@@ -567,14 +543,11 @@ sudo starce ip netns list
 
 Then the output obtained (Try to zoom in on the image):
 
-![systemTrace](https://i.imgur.com/pwwmuID.jpg)
-
-<br>
+![sys_trace](../img/sys_trace.jpg)
 
 Let's take a good look at the last four lines. If it doesn't look right in the picture, it's these lines:
 
 ```
-
 open("/var/run/netns", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
 open("/var/run/netns", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
 exit_group(0)                           = ?
@@ -585,11 +558,7 @@ The first part of the trace is going to be omitted since the only thing it does 
 
 So we can say that the `ip netns list` command does work correctly. But then, where are the network namespaces used by Mininet?
 
-</div>
-
 #### Where are Mininet's Network Namespaces located? :kissing:
-
-<div style="text-align: justify">
 
 Well, to answer this question, we must first understand one thing. The `ip' tool with its **netns** module acts as a wrapper when we work with Network namespaces. Namespaces (there are several [types](http://man7.org/linux/man-pages/man7/network_namespaces.7.html)) have a finite life, that is, they live as long as they are **referenced**. A namespace can be referenced in **three** ways:
 
@@ -603,57 +572,38 @@ If none of these conditions are met, the namespace in question is **deleted**. I
 
 Mininet, when is launched it creates an emulated network, when is closed it should disappear, this process should be as light and fast as possible to provide a better user experience. The nature of Mininet's needs leads us to believe that the creation and destruction of network namespaces is associated with the first condition of referencing a namespace. That is, there would be no point in making mounts or softlinks that will have to be removed later, as this would mean a significant workload for large network emulations and an increase in the time spent cleaning up the system once the emulation is complete. In addition, we must take into account that there is a third condition that is quite suitable with Mininet's needs, since only one process is needed running per Network namespace, and when cleaning we must only finish with the processes that *support* the Network namespaces.
 
-
-
-</div>
-
-
 ##### Just a hypothesis?
-
-<div style="text-align: justify">
-
 
 Well, according to the above reasoning, we should see several processes that are created at the time of the build-up of our scenario in Mininet. These processes should each have a Network Namespace file, `/proc/{pid}/ns/net`, with a different **inode** for those processes running in different Network namespaces. Where do we start looking? 
 
-
-
-
 Let's set the scenario up if we haven't set it up before, list all processes, and filter by the name of *mininet*. Let's see what we find :grimacing:.
-
 
 ```
 sudo ps aux | grep mininet
 ```
 
-![procesos_netns](https://i.imgur.com/HSacu6V.png)
+![netns_procs](../img/netns_procs.png)
 
 Wow :hushed:! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
 
 
 If we inspect the `/proc/{pid}/ns/net` file for each process we can see which ones are in a different network namespace depending on the value of the inode. For example, let's check the processes associated with Host1 and Host2.
 
+![host1_procs](../img/host1_procs.png)
 
-
-
-![Host1](https://i.imgur.com/D5sM9kA.png)
-
-![Host2](https://i.imgur.com/huyuxUB.png)
+![host2_procs](../img/host2_procs.png)
 
 As you can see, different inodes, different files, **different network namespaces**. In order to make it more evident, we are going to execute a command to show which interfaces are associated to each Network namespace. In order to inject processes into a namespace we will use the `nsenter` tool. For more information about this tool, please refer to its [manual](http://man7.org/linux/man-pages/man1/nsenter.1.html).
-
-
 
 ```
 nsenter --target <pid> --net {Command}
 ```
 
-![Host1_intf](https://i.imgur.com/UwohklX.png)
+![host1_intf](../img/host1_intf.png)
 
-![Host2_intf](https://i.imgur.com/r6Z18ir.png)
+![host2_intf](../img/host2_intf.png)
 
 If we look at the command entered in each network namespace it is the same, `ip addr show` (a.k.a `ip a s`). With this command we can list all the addresses assigned to each interface of the Network namespace. The result obtained from the execution of each command is the expected one, in the Network namespace of the **Host1** we can see that the interface `h1-eth0` exists, and in the Network namespace of the **Host2** the interface `h2-eth0`. With this test we conclude with the existence of the Network namespace that Mininet uses.
-
-
 
 Additionally we can corroborate our hypothesis by changing the "*verbosity*" of our script, where we build the whole scenario topology, [`src/scenario_basic.py`](https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py), we can change the level of `info` to `debug`, and launch the script again.
 
@@ -665,17 +615,11 @@ if __name__ == '__main__':
     scenario_basic()
 ```
 
-![debug](https://i.imgur.com/ucOXTLm.png)
+![debug](../img/debug.png)
 
 As you can see in the execution, `veth` is created (**V**virtual **Eth**ernet devices), and the different processes that *will* support the different Network Namespaces. Furthermore, it has been possible to check how the `tc` (**T**raffic **C**controller) is used to establish the bandwidth and maximum queue limits to the links in the scenario.
 
-
-
-</div>
-
-#### So, It's possible to use iproute2 with Mininet? :relaxed:
-
-<div style="text-align: justify">
+#### So, is it possible to use iproute2 with Mininet? :relaxed:
 
 The quick and easy answer in the current state would be that **no**. We can always make use of the Python API to run things inside a network element or if not, we can ultimately open the Mininet CLI, open an xterm and throw things by hand, or as we have done before make use of the `nsenter' tool. 
 
@@ -686,11 +630,8 @@ First we must locate the PID of the bash that holds the Host1 Network Namespace.
 ```bash
 sudo ps aux | grep mininet | grep h1
 ```
-<p align="center">
-   
-![pid_h1](https://i.imgur.com/o4U12CD.png)
 
-</p>
+![h1_pid](../img/h1_pid.png)
 
 Once we know the PID of the process that *holds* the Host1 Network Namespace, we will create the `/var/run/netns` directory in case it is not created:
 
@@ -704,71 +645,44 @@ We must make a softlink from the original Network Namespace file in the created 
 ```bash
 sudo ln -sfT /proc/<PID>/ns/net /var/run/netns/h1
 ```
-<p align="center">
-   
-![ln](https://i.imgur.com/7n4eMLI.png)
 
-</p>
+![lnk](../img/lnk.png)
 
 Finally, we would only have to try again the command 'ip netns list' to see if it is able to list the Network namespace:
 
-<p align="center">
-<img src="https://i.imgur.com/9Sz3fjc.png" alt="funciona_n_n" style="display: block;margin-left: auto; margin-right: auto; width: 50%;">
-</p>
-
-<br>
+![it_works](../img/it_works.png)
 
 Some will say it's dark magic.. But, it's just that, creating a softlink and knowing how each element works :wink:.
 
-
-![iproute2_fixed](https://i.imgur.com/X3pfkdp.png)
+![iproute2_fixed](../img/iproute2_fixed.png)
 
 As you can see, the command is fully functional. You can see how we are able to list all the interfaces of Host1's Network namespace. But as everything, it always has pros and cons, when we make the arrangement of creating a softlink and turning off the emulation with its corresponding system cleaning (we are mainly concerned with the elimination of the processes that supported the Network namespace), we are left with a broken softlink pointing to a site that no longer exists, or is no longer useful.
 
-<p align="center">
-<img src="https://i.imgur.com/sQoxBQn.png" style="display: block;margin-left: auto; margin-right: auto; width: 50%;">
-</p>
+![shutting_down](../img/shutting_down.png)
 
-<br>
-
-![broken_softlink](https://i.imgur.com/v3zv7nW.png)
+![broken_softlink](../img/broken_softlink.png)
 
 With all of the above, it is left up to the user to decide whether or not to use the iproute2 tool. If this is the case, it is recommended that an auxiliary cleaning script be developed to clean up those softlinks that are broken in the `/var/run/netns` directory when the emulation is finished.
 
-</div>
-
-
 ### The Big Picture
-
-
-<div style="text-align: justify">
 
 Once we have concluded that Mininet makes use of Network namespaces and we know how to demonstrate it, we will inspect each of the Network namespaces to draw a scheme of how our Kernel-level scenario is implemented. Let's remember how our scenario was:
 
-![Escenario](https://i.imgur.com/kH7kAqB.png)
+![scenario](../img/scenario.png)
 
 As you can see, the switches are network elements that are supposed to be isolated in a network namespace, but for our surprise they are not in the default network namespace. Why does it work then, because there is no by-pass to the default network stack? This is because of the nature of veth, which goes straight to the OVS process itself. (A future guide will attempt to address this issue more fully).
 
-<br>
-
-![switchs](https://i.imgur.com/kItm2gA.png)
-
-<br>
+![switches_ln](../img/switches_ln.png)
 
 ##### How would our Kernel-level scenario look then?
 
-![fin](https://i.imgur.com/Ex8P7zl.png)
-
+![end](../scenario_kernel.png)
 
 So, to run 'telegraf' only on the switches we would just launch it on the default network namespace! This can be done with a single `telegraf` process since the useful interfaces are all in the same Network namespace :relaxed: .
-</div>
-
 
 ---
 
 ## Troubleshooting
-
-<!-- * If we use a terminal, without **X server** for example, to reroute the graphical stdout of the virtual machine out, the Miniedit tool will not run. It uses tkinter, it needs the environment variable `$DISPLAY` properly configured. -->
 
 * If we are to use a terminal emulator without an **X server** installed or properly configured the **miniedit** tool will not run. This tool presents us with a GUI we can use to define our network and then it'll generate a script that brings it up for us. If we are to reroute the **stdout** of a VM we will need to set the `$DISPLAY` variable accordingly as **miniedit** used **tkinter** and it needs it to run correctly.
 
@@ -777,11 +691,8 @@ So, to run 'telegraf' only on the switches we would just launch it on the defaul
 ```bash
 sudo mn -c
 ```
-<!-- ![clean](https://i.imgur.com/zRrxiP5.png) -->
 
-<p align="center">
-    <img src="https://i.imgur.com/zRrxiP5.png">
-</p>
+![mn_clean](../mn_clean.png)
 
 ---
 
@@ -850,7 +761,3 @@ doi: 10.1109/ColComCon.2014.6860404 [Paper](http://ieeexplore.ieee.org/stamp/sta
 7. Manual [InfluxDB Python API](https://influxdb-python.readthedocs.io/en/latest/api-documentation.html)
 
 8. Schematic diagrams made with [DrawIO](https://www.draw.io).
-
-
-
-
