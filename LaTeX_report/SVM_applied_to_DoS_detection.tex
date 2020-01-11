@@ -4,7 +4,7 @@
 \usepackage[utf8]{inputenc}
 
 % Code colorizer. You need to install python3-pygments locally...
-\usepackage{minted}
+\usepackage[cache=false]{minted}
 % Minted's color scheme
 \usemintedstyle{tango}
 
@@ -14,7 +14,7 @@
  % Insert images
 \usepackage{graphicx}
 % Look for images here
-\graphicspath{{../img/}}
+\graphicspath{{./img/}}
 
  % Let's use links!
 \usepackage{hyperref}
@@ -28,6 +28,9 @@
 % More config for the links
 \urlstyle{same}
 
+% References
+\usepackage{cite}
+
 % Add a blank line between paragraphs
 \newcommand{\newpar} {
     \vskip 1cm
@@ -37,11 +40,20 @@
 \author{David Carrascal, Adrián Guerrero, Artem Strilets, Pablo Collado}
 \date{January 2020}
 
+
 \begin{document}
 
 \begin{titlepage}
 	\maketitle
+	\newpar
+	\newpar
+		\begin{figure}[!htb]
+		\centering
+		\includegraphics[width=0.5\linewidth]{logo_project.png}
+	\end{figure}
 \end{titlepage}
+
+
 
 \begin{abstract}
 	The purpose of this project is to develop an artificial intelligence to classify possible DDoS attacks in an SDN network. This will be done by using data collectors such as Telegraf, Mininet to emulate the SDN network, and InfluxDB and Grafana as a means to store data and visualize it respectively. For non-English speakers we leave part of the content of this guide written in Spanish:
@@ -55,6 +67,8 @@
 	\textbf{Keywords}: \href{https://www.digitalattackmap.com/}{\textit{DDoS attacks}}; \href{https://www.opennetworking.org/sdn-definition}{\textit{SDN network}}; \href{https://www.sciencedirect.com/science/article/abs/pii/016974399500050X}{\textit{Artificial Intelligence classification}}; \href{https://mininet.org}{\textit{Mininet}}
 \end{abstract}
 
+\nocite{*}
+\newpage
 \tableofcontents
 % We need a new page or otherwise the table of contents won't fit...
 \newpage
@@ -142,7 +156,7 @@
 
 	\begin{figure}
 		\centering
-		\includegraphics[scale = 1]{scenario.png}
+		\includegraphics[width=\linewidth]{scenario.png}
 		\caption{Mininet's Scenario}
 		\label{f:scenario}
 	\end{figure}
@@ -182,9 +196,9 @@
 
 		If you want to move the controller app back into the foreground so that you can kill it with \texttt{CTRL + C} you can run \texttt{fg} which will bring the last process sent to the background back to the foreground.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{controller_ex.png}
+			\includegraphics[width=\linewidth]{controller_ex.png}
 			\caption{The controller is now running}
 		\end{figure}
 
@@ -194,9 +208,10 @@
 	sudo python3 scenario_basic.py
 		\end{minted}
 
-		\begin{figure}
+        \newpage
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{mininet_up.png}
+			\includegraphics[width=\linewidth]{mininet_up.png}
 			\caption{Mininet is now UP}
 			\label{f:mininet_up}
 		\end{figure}
@@ -215,7 +230,7 @@
 
 		\begin{figure}
 			\centering
-			\includegraphics[scale = 1]{ping_ok.png}
+			\includegraphics[width=\linewidth]{ping_ok.png}
 			\caption{Mininet is working OK}
 			\label{f:ping_ok}
 		\end{figure}
@@ -226,16 +241,17 @@
 			\item An \textbf{ARP} resolution between sender and receiver of the ping takes place so that the sender learns the next hop's \textbf{MAC} address.
 			\item In addition, the \textbf{ICMP} message (ping-request) will be redirected to the driver (a.k.a controller) to decide what to do with the packet as the switches don't yet have a \textbf{flow} to handle this traffic type. This way the controller will, when it receives the packet, instantiate a set of rules on the switches so that the \textbf{ICMP} messages are routed from one host to the other.
 		\end{itemize}
-
+        \newpage
 		\begin{figure}
 			\centering
-			\includegraphics[scale = 1]{ryu_rcv.png}
+			\includegraphics[width=\linewidth]{ryu_rcv.png}
 			\caption{Ryu is configuring the flows}
 			\label{f:ryu_rcv}
 		\end{figure}
 
 		As you can see in figure \ref{f:ryu_rcv}, the controller's \textbf{stdout} (please take a look at the appendix to learn more about file descriptors) indicates the commands it has been instantiating according to the packets it has processed. In the end, for the first packet we will have to tolerate a delay due to \textbf{ARP} resolution and \textbf{flow} lookup and instantiation within the controller. The good thing is the rest of the packets will already have the destination \textbf{MAC} and the rules will already instantiated in the intermediate switches, so the new delay will be minimal.
 
+\newpage
 \section{Attack Time}
 	We have already talked about how to set up our scenario but we haven't got into breaking things (i.e the fun stuff  ). Our goal is to simulate a \textbf{DoS} (\textbf{D}enial \textbf{o}f \textbf{Service}) attack. Note that we usually refer to this kind of threats as \textbf{DDoS} attacks where the first \textbf{D} stands for \textbf{D}istributed. This second "name" implies that we have multiple machines trying to flood our own. We are going to launch the needed amounts of traffic from a single host so we would be making a mistake if we were talking about a distributed attack. All in all this is just a minor nitpick, the concept behind both attacks is exactly the same.
 	\newpar
@@ -276,13 +292,14 @@
 	net.addLink(s3, h6, bw = 10)
 			\end{minted}
 
-			We are fixing a \textbf{BW} for the links with the \texttt{bw} parameter. We have also chosen to assign a finite buffer size to the middle switches in an effort to get as close to reality as we possibly can. If the \texttt{max\_queue\_size} parameter hadn't been defined we would be working with "infinite" buffers at each switch's exit ports. Having these finite buffers will in fact introduce a damping effect in our tests as once you fill them up you can't push any more data through: the output queues are absolutely full... In a real-life scenario we would suffer huge packet losses at the switches and that could be used as a symptom as well but we haven't taken it into account for the sake of simplicity.
-			\newpar
+			We are fixing a \textbf{BW} for the links with the \texttt{bw} parameter. We have also chosen to assign a finite buffer size to the middle switches in an effort to get as close to reality as we possibly can. If the \texttt{max\_queue\_size} parameter hadn't been defined we would be working with "infinite" buffers at each switch's exit ports. Having these finite buffers will in fact introduce a damping effect in our tests as once you fill them up you can't push any more data through: the output queues are absolutely full... In a real-life scenario we would suffer huge packet losses at the switches and that could be used as a symptom as well but we haven't taken it into account for the sake of simplicity.\newline
+			\newline
 			We fixed the queue lengths so that they were coherent with standard values. We decided to use a \textbf{500 packet} size because \textit{Cisco}'s queue lengths range from 64 packets to about 1000 as found \href{https://www.cisco.com/c/en/us/support/docs/routers/7200-series-routers/110850-queue-limit-output-drops-ios.html}{here}. We felt like 500 was an appropriate value in the middle ground. With all these restrictions our scenario would look like figure \ref{f:limited}.
-
-			\begin{figure}
+            
+    
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{scenario_limits.png}
+				\includegraphics[width=\linewidth]{scenario_limits.png}
 				\caption{Scenario with link capacities}
 				\label{f:limited}
 			\end{figure}
@@ -322,13 +339,14 @@
 	\subsection{Demo Time!}
 		The attack we are going to carry out comprises hosts \textbf{1}, \textbf{2} and \textbf{4}. We'll launch \texttt{hping3} from \textbf{Host1} targeting \textbf{Host4} and we'll try to ping \textbf{Host4} from \textbf{Host2}. We will in fact see how this "regular" ping doesn't get through as a consequence of a successful \textbf{DoS} attack. Figure \ref{f:dos_atk} depicts the situation.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{scenario_ddos.png}
+			\includegraphics[width=\linewidth]{scenario_ddos.png}
 			\caption{Under attack!}
 			\label{f:dos_atk}
 		\end{figure}
-
+        
+        \newpage
 		Let's begin by setting up the scenario like we usually do:
 
 		\begin{minted}{bash}
@@ -342,29 +360,31 @@
 	mininet> h4 wireshark &
 		\end{minted}
 
-		Time to launch \texttt{hping3} from \textbf{Host1} with the parameters we discussed. This is shown in figure \ref{f:hpin3_ex}.
 
-		\begin{figure}
+        Time to launch \texttt{hping3} from \textbf{Host1} with the parameters we discussed. This is shown in figure \ref{f:hping3_ex}.
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{launch_hping3.png}
+			\includegraphics[width=\linewidth]{launch_hping3.png}
 			\caption{Launching the \texttt{DoS} attack}
 			\label{f:hping3_ex}
 		\end{figure}
 
+        \newpage		
 		If we now try to ping \textbf{Host4} from \textbf{Host2} we'll fail horribly as we find in figure \ref{f:net_down}.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{net_down.png}
+			\includegraphics[width=\linewidth]{net_down.png}
 			\caption{\texttt{ICMP} traffic can't get through...}
 			\label{f:net_down}
 		\end{figure}
 
 		If we halt the \textbf{DoS} attack we will see the regular traffic resume its normal operation after a short period of time. Figure \ref{f:net_ok} depicts this.
+		\newpar
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{net_ok.png}
+			\includegraphics[width=\linewidth]{net_ok.png}
 			\caption{The network has recovered!}
 			\label{f:net_ok}
 		\end{figure}
@@ -380,7 +400,7 @@
 
 	\subsection{Wanted a Video}
 		You can find a video showing the process we described step by step \href{https://www.youtube.com/watch?v=ofZPmV6_y_M}{here}. If you stumble upon any questions don't hesitate to contact us!
-
+\newpage
 \section{Traffic Classification With a SVM (\textbf{S}upport \textbf{V}ector \textbf{M}achine)}
 	We have our scenario working properly and the attack is having the desired effect on our network. In other words, it's blowing things up. If we are to detect the attack we need to gather representative data and process it somehow so that we can predict whether we are under attack or not. As Jack the Ripper once said, let's break this into parts. We'll begin by gathering the necessary data and sending it to a database we can easily query. We'll then prepare training datasets for our SVM and get it ready for making guesses. Let's begin!
 
@@ -414,7 +434,7 @@
 
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{telegraf_connections.png}
+				\includegraphics[width=\linewidth]{telegraf_connections.png}
 				\caption{Connection through the filesystem}
 				\label{f:telegraf_connections}
 			\end{figure}
@@ -481,7 +501,7 @@
 
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{svm_graph.png}
+				\includegraphics[width=\linewidth]{svm_graph.png}
 				\caption{SVM's Decision Regions}
 				\label{f:svm_graph}
 			\end{figure}
@@ -489,7 +509,7 @@
 			We've also written a signal handler to allow for a graceful exit when pressing \texttt{CTRL + C}.
 			\newpar
 			And with that we are finished!   We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
-
+\newpage
 \section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 	We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
 
@@ -515,9 +535,9 @@
 	\subsection{Command: \texttt{dpctl}}
 		The \textbf{dpctl} command is a management utility that allows some control over the OpenFlow switch (ovs-ofctl on the OpenvSwitch). This tool lets us add flows to the flow table, check the features and status of the switches or clean the table among many other things. For example, recall how we previously made a ping between \textbf{h1} and \textbf{h3}. If we consult the flow tables we will be able to check how the rules for handling \textbf{ICMP} flows have been instantiated as seen in figure \ref{f:dpctl}.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{dpctl.png}
+			\includegraphics[width=\linewidth]{dpctl.png}
 			\caption{\texttt{DumpCTL}}
 			\label{f:dpctl}
 		\end{figure}
@@ -529,34 +549,38 @@
 	\subsection{Command: \texttt{dump} + \texttt{net}}
 		These commands will give us information about the emulated topology. The \textbf{net} command will indicate the names of the entities in the emulated topology as well as their interfaces. The \textbf{dump} command will also indicate the type of entity, its \textbf{IP} address, port when applicable, interface and the entity's process identifier (\textbf{PID}). You can find a sample output in figure \ref{f:dump}.
 
-		\begin{figure}
+        \newpage
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{dump.png}
+			\includegraphics[width=\linewidth]{dump.png}
 			\caption{\texttt{dump's} output}
-			\label{f:fump}
+			\label{f:dump}
 		\end{figure}
 
 	\subsection{Command: \texttt{xterm} + \texttt{gterm}}
-		These two commands will allow us to open terminal emulators in the node identified by the accompanying argument. The command \textbf{xterm} will allow us to open a simple \textbf{XTERM} (the default terminal emulator for the \textbf{X} windows system) terminal emulator, and \textbf{gterm} launches a prettier but more resource hungry \textbf{Gnome terminal}. We can open several terminals at once by indicating all the nodes we want to open a terminal in. Later, when we discuss the inner workings of \textbf{Mininet}, we'll talk a bit more about where the \textbf{bash} process attached to the terminal emulator is running. You might think that this process is totally isolated from the machine on which you are running \textbf{Mininet}, but this is not entirely the case... You can find a \texttt{xterm} instance running in figure \ref{f:xterm}.
-
+		These two commands will allow us to open terminal emulators in the node identified by the accompanying argument. The command \textbf{xterm} will allow us to open a simple \textbf{XTERM} (the default terminal emulator for the \textbf{X} windows system) terminal emulator, and \textbf{gterm} launches a prettier but more resource hungry \textbf{Gnome terminal}.
+		\newpar
+		We can open several terminals at once by indicating all the nodes we want to open a terminal in. Later, when we discuss the inner workings of \textbf{Mininet}, we'll talk a bit more about where the \textbf{bash} process attached to the terminal emulator is running. You might think that this process is totally isolated from the machine on which you are running \textbf{Mininet}, but this is not entirely the case... You can find a \texttt{xterm} instance running in figure \ref{f:xterm}.
+        \newpar
 		\begin{minted}{bash}
 	# xterm/gterm [node1] [node2]
 	xterm h1 h6
 		\end{minted}
-
-		\begin{figure}
+        \newpage
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{xterm.png}
+			\includegraphics[width=\linewidth]{xterm.png}
 			\caption{Launching \texttt{xterm} on the nodes}
 			\label{f:xterm}
 		\end{figure}
 
 	\subsection{Command: \texttt{nodes} + \texttt{ports} + \texttt{initfs}}
 		These commands will list information related to the nodes in the topology. The \textbf{intfs} command will list all information related to the nodes' interfaces. The  \textbf{nodes} command will show every node in the topology. Finally, the \textbf{ports} command is used to list the ports and interfaces of the switches in the topology. An example output can be found in figure \ref{f:initfs}.
-
-		\begin{figure}
+        
+        \newpage
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{initfs_cmd.png}
+			\includegraphics[width=\linewidth]{initfs_cmd.png}
 			\caption{The \texttt{ports} and \texttt{initfs} commands}
 			\label{f:initfs}
 		\end{figure}
@@ -571,14 +595,17 @@
 	\newpar
 	An example to differentiate the two could be to think about a plane cockpit. If we were to play a video-game like \textbf{Flight Simulator} we would be simulating (no surprise) the flight but if we were to practice using a 1:1 scale with real controls we would then be talking about emulation.
 
-	\begin{figure}
+	\begin{figure}[!htb]
 		\centering
-		\includegraphics[scale = 1]{emulation.png}
+		\includegraphics[width=0.7\linewidth]{emulation.png}
 		\caption{A videogame portraying a flight emulator}
 		\label{f:emulator}
 	\end{figure}
 
-	With this little detail out of the way we could ask ourselves. Does \textbf{mininet} emulate or simulate a network?. It is a network \textbf{emulator}, here's why. Mininet reserves system resources for each node in the \textbf{emulated} network. You might think these nodes are "just" VMs or virtualized containers but... they're not. That solution would have many advantages but it wouldn't scale to be able to \textbf{emulate} large networks or huge amounts of traffic as it would exhaust the host system's resources... The Mininet developers then chose to \textbf{exclusively virtualize} what was necessary to carry out the desired \textbf{network emulation}.
+	With this little detail out of the way we could ask ourselves. Does \textbf{mininet} emulate or simulate a network?. It is a network \textbf{emulator}, here's why. Mininet reserves system resources for each node in the \textbf{emulated} network. You might think these nodes are "just" VMs or virtualized containers but... they're not.
+	
+	\newpar
+	That solution would have many advantages but it wouldn't scale to be able to \textbf{emulate} large networks or huge amounts of traffic as it would exhaust the host system's resources... The Mininet developers then chose to \textbf{exclusively virtualize} what was necessary to carry out the desired \textbf{network emulation}.
 	\newpar
 	How did they do it? By using the \textbf{Network Namespaces}.
 
@@ -589,25 +616,29 @@
 		\newpar
 		In this way, each network element has its own network namespace, i.e. each element has its own network stack and interfaces. So at the networking level, one could say, they are independent elements. The key is that every node shares the same process namespace, IPCs namespace, filesystem... We are virtualizing up to the network layer only. This is the true power of the network stack approach to things. As Vegeta would put it: "The network namespace's power is over 9000!" just like we see him say in figure \ref{f:ns_power}.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{vegeta.png}
+			\includegraphics[width=0.6\linewidth]{vegeta.png}
 			\caption{The namespaces' power is...}
 			\label{f:ns_power}
 		\end{figure}
-
+        
+        \newpar
 		In figure \ref{f:x_htop} we can see how we created a process in the host machine with the \texttt{sleep} command whose \textbf{PID} is \texttt{20483}. If the network elements were really isolated we wouldn't be able to see this process from other machines but the reality is different with mininet as we discussed.
 		\newpar
 		This is something to assume when working with Mininet's low-cost emulation. This approach would be lacking in other scenarios but it is more than enough to emulate a network. This fact casts some doubts on how to integrate our data collection system with \textbf{telegraf} in the different network elements without any incompatibilities...
 		\newpar
 		That's why we decided to take the controller "out of" the machine where Mininet was going to run so as to avoid problems with by-passes by IPCs from telegraf to the InfluxDB database. The only thing left for us to do is to figure out how to correctly install and configure telegraf so that everything works as intended.
+		\newpage
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{x_htop.png}
+			\includegraphics[width=\linewidth]{x_htop.png}
 			\caption{A lazy process...}
 			\label{f:x_htop}
 		\end{figure}
+		
+\newpage
 
 \section{Mininet's Internals (II)}
 	In this second part on the internal operation of Mininet, we will investigate the Kernel-level topology recreated by Mininet to set up our scenario. Finally, we will explain the different ways to raise services in the different Network namespaces, necessary to collect information with \texttt{telegraf}. 
@@ -639,17 +670,17 @@
 
 		Knowing the command to list Network Namespaces, and having previously set up the scenario, we'll check if there really are any Network Namespaces created on our machine in figure \ref{f:netns_list}.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{netns_list.png}
+			\includegraphics[width=\linewidth]{netns_list.png}
 			\label{f:netns_list}
 		\end{figure}
 
 		After checking figure \ref{f:netns_list} it seems that there is no Network namespace created, maybe, \textbf{Mininet doesn't work as we said before?} First of all, let's calm down just like \textbf{Tux} in figure \ref{f:tux}, we don't have to rewrite all the documentation.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{calm_tux.jpg}
+			\includegraphics[width=0.6\linewidth]{calm_tux.jpg}
 			\label{f:tux}
 		\end{figure}
 
@@ -666,17 +697,17 @@
 
 			Then the output obtained will be like the one in figure \ref{f:sys_trace} (try to zoom in on the image).
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{sys_trace.jpg}
+				\includegraphics[width=\linewidth]{sys_trace.jpg}
 				\label{f:sys_trace}
 			\end{figure}
 
 			Let's take a good look at the last four lines from figure \ref{f:sys_trace}. If it doesn't look right in the picture, it's these lines:
 
 			\begin{minted}{c}
-	open("/var/run/netns", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
-	open("/var/run/netns", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
+	open("/var/run/netns", O_RDONLY|O_NONBLOCK|O_DIRECTORY|
+	O_CLOEXEC) = -1 ENOENT (No such file or directory)
 	exit_group(0) = ?
 	+++ exited with 0 +++
 			\end{minted}
@@ -709,25 +740,25 @@
 
 			The output of the avobe command can be seen in figure \ref{f:netns_procs}.
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{netns_procs.png}
+				\includegraphics[width=\linewidth]{netns_procs.png}
 				\label{f:netns_procs}
 			\end{figure}
 
 			Wow! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
 			\newpar
-			If we inspect the \texttt{/proc/{pid}/ns/net} file for each process we can see which ones are in a different network namespace depending on the value of the inode. For example, let's check the processes associated to hosts 1 and 2 can be seen in figures \ref{host1_procs} and \ref{host2_procs} respectively.
+			If we inspect the \texttt{/proc/{pid}/ns/net} file for each process we can see which ones are in a different network namespace depending on the value of the inode. For example, let's check the processes associated to hosts 1 and 2 can be seen in figures \ref{f:host1_procs} and \ref{f:host2_procs} respectively.
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{host1_procs.png}
+				\includegraphics[width=\linewidth]{host1_procs.png}
 				\label{f:host1_procs}
 			\end{figure}
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{host2_procs.png}
+				\includegraphics[width=\linewidth]{host2_procs.png}
 				\label{f:host2_procs}
 			\end{figure}
 
@@ -737,23 +768,25 @@
 	nsenter --target <pid> --net {Command}
 			\end{minted}
 
-			The output of the above command for hosts 1 and 2 can be seen in figures \ref{f:host1_intf} and \ref{host2_intf} respectively.
+			The output of the above command for hosts 1 and 2 can be seen in figures \ref{f:host1_intf} and \ref{f:host2_intf} respectively.
+			
+			\newpage
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{host1_intf.png}
+				\includegraphics[width=\linewidth]{host1_intf.png}
 				\label{f:host1_intf}
 			\end{figure}
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{host2_intf.png}
+				\includegraphics[width=\linewidth]{host2_intf.png}
 				\label{f:host2_intf}
 			\end{figure}
 
 			If we look at the command entered in each network namespace it is the same, \texttt{ip addr show} (a.k.a \texttt{ip a s}). With this command we can list all the addresses assigned to each interface of the Network namespace. The result obtained from the execution of each command is the expected one, in the Network namespace of the \textbf{Host1} we can see that the interface \texttt{h1-eth0} exists, and in the Network namespace of the \textbf{Host2} the interface \texttt{h2-eth0}. With this test we conclude with the existence of the Network namespace that Mininet uses.
 			\newpar
-			Additionally we can corroborate our hypothesis by changing the "\textit{verbosity}" of our script, where we build the whole scenario topology, \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario\_basic.py}}, we can change the level of \texttt{info} to \texttt{debug}, and launch the script again.
+			Additionally we can corroborate our hypothesis by changing the "\textit{verbosity}" of our script,  where we build the whole scenario topology, \newline \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario\_basic.py}}, we can change the level of \texttt{info} to \texttt{debug}, and launch the script again.
 
 			\begin{minted}{python}
 	if __name__ == '__main__':
@@ -764,7 +797,7 @@
 
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{debug.png}
+				\includegraphics[width=\linewidth]{debug.png}
 				\label{f:debug}
 			\end{figure}
 
@@ -783,16 +816,17 @@
 
 			The output of the avobe command can be seen in figure \ref{f:h1_pid}.
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{h1_pid.png}
+				\includegraphics[width=\linewidth]{h1_pid.png}
 				\label{f:h1_pid}
 			\end{figure}
 
 			Once we know the PID of the process that \textit{holds} the Host1 Network Namespace, we will create the \texttt{/var/run/netns} directory in case it is not created:
 
 			\begin{minted}{bash}
-	# We use the -p parameter so that in case it exists it does not give us errors.
+	# We use the -p parameter so that in case it exists
+	# it does not give us errors.
 	mkdir -p /var/run/netns/
 			\end{minted}
 
@@ -804,58 +838,60 @@
 
 			The output of the above command can be seen in figure \ref{f:lnk}.
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{lnk.png}
+				\includegraphics[width=\linewidth]{lnk.png}
 				\label{f:lnk}
 			\end{figure}
 
 			Finally, we would only have to try again the command 'ip netns list' to see if it is able to list the Network namespace. The output can be seen in figure \ref{f:it_works}.
-
-			\begin{figure}
+            \newpage
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{it_works.png}
+				\includegraphics[width=\linewidth]{it_works.png}
 				\label{f:it_works}
 			\end{figure}
-
+                
+    
 			Some will say it's dark magic.. But, it's just that, creating a softlink and knowing how each element works.
 
-			\begin{figure}
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[scale = 1]{iproute2_fixed.png}
+				\includegraphics[width=\linewidth]{iproute2_fixed.png}
 				\label{f:iproute2_fixed}
 			\end{figure}
 
 			As you can see in figure \ref{f:iproute2_fixed}, the command is fully functional. You can see how we are able to list all the interfaces of Host1's Network namespace. But as everything, it always has pros and cons, when we make the arrangement of creating a softlink and turning off the emulation with its corresponding system cleaning (we are mainly concerned with the elimination of the processes that supported the Network namespace), we are left with a broken softlink pointing to a site that no longer exists, or is no longer useful.
-
+            \newpage
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{shutting_down.png}
+				\includegraphics[width=0.7\linewidth]{shutting_down.png}
 				\label{f:shutting_down}
 			\end{figure}
 
 			\begin{figure}
 				\centering
-				\includegraphics[scale = 1]{broken_softlink.png}
+				\includegraphics[width=\linewidth]{broken_softlink.png}
 				\label{f:broken_softlink}
 			\end{figure}
 
 			With the outputs shown in figures \ref{f:shutting_down} and \ref{f:broken_softlink}, it is left up to the user to decide whether or not to use the iproute2 tool. If this is the case, it is recommended that an auxiliary cleaning script be developed to clean up those softlinks that are broken in the \texttt{/var/run/netns} directory when the emulation is finished.
-
+            \newpar
+            
 	\subsection{The Big Picture}
 		Once we have concluded that Mininet makes use of Network namespaces and we know how to demonstrate it, we will inspect each of the Network namespaces to draw a scheme of how our Kernel-level scenario is implemented. Let's take another look at our scenario in figure \ref{f:scenario_prime}.
-
-		\begin{figure}
+        \newpage
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{scenario.png}
+			\includegraphics[width=0.8\linewidth]{scenario.png}
 			\label{f:scenario_prime}
 		\end{figure}
-
+        
 		As you can observe in figure \ref{f:switches}, the switches are network elements that are supposed to be isolated in a network namespace, but for our surprise they are not in the default network namespace. Why does it work then, because there is no by-pass to the default network stack? This is because of the nature of veth, which goes straight to the OVS process itself. (A future guide will attempt to address this issue more fully).
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{switches_ln.png}
+			\includegraphics[width=\linewidth]{switches_ln.png}
 			\label{f:switches}
 		\end{figure}
 
@@ -863,26 +899,28 @@
 
 		The final "scenario" can be seen in figure \ref{f:scenario_kernel}.
 
-		\begin{figure}
+		\begin{figure}[!htb]
 			\centering
-			\includegraphics[scale = 1]{scenario_kernel.png}
+			\includegraphics[width=\linewidth]{scenario_kernel.png}
 			\label{f:scenario_kernel}
 		\end{figure}
 
 		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace.
 
+\newpage
 \section{Troubleshooting}
 	\begin{itemize}
 		\item If we are to use a terminal emulator without an \textbf{X server} installed or properly configured the \textbf{miniedit} tool will not run. This tool presents us with a GUI we can use to define our network and then it'll generate a script that brings it up for us. If we are to reroute the \textbf{stdout} of a VM we will need to set the \texttt{\$DISPLAY} variable accordingly as \textbf{miniedit} used \textbf{tkinter} and it needs it to run correctly.
 		\item If there are problems when launching the scenario try to clean up the previous environment. If we exit the mininet CLI by issuing the \texttt{quit} everything should be deleted correctly, otherwise we can always clean it up ourselves by running: \mint{bash}|sudo nm -c|. You can take a look at the output in figure \ref{f:mn_clean}.
 	\end{itemize}
 
-	\begin{figure}
+	\begin{figure}[!htb]
 		\centering
-		\includegraphics[scale = 1]{mn_clean.png}
+		\includegraphics[width=\linewidth]{mn_clean.png}
 		\label{f:mn_clean}
 	\end{figure}
-
+	
+\newpage
 \section{Appendix}
 	We have decided to prepare an appendix so that we can shed some light on obscure topics not directly related to the project itself. We'll talk about tangential components of the project so that we can have a clearer idea of what's going on in the background and you can get a better grasp of the tools we have employed. It's a win win!
 
@@ -931,6 +969,9 @@
 		\item \textbf{Pablo Collado}: \href{https://github.com/ArtemSSOO}{GitHub Profile}
 	\end{itemize}
 
-\section{Bibliography (TODO)}
+%\section{Bibliography (TODO)}
+
+\bibliographystyle{plain}
+\bibliography{references}{}
 
 \end{document}
