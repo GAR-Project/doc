@@ -11,7 +11,7 @@
 % Let us break equations into lines
 \usepackage{amsmath}
 
- % Insert images
+% Insert images
 \usepackage{graphicx}
 % Look for images here
 \graphicspath{{../img/}}
@@ -40,7 +40,6 @@
 \author{David Carrascal, Adrián Guerrero, Artem Strilets, Pablo Collado}
 \date{January 2020}
 
-
 \begin{document}
 
 \begin{titlepage}
@@ -52,8 +51,6 @@
 		\includegraphics[width=0.5\linewidth]{logo_project.png}
 	\end{figure}
 \end{titlepage}
-
-
 
 \begin{abstract}
 	The purpose of this project is to develop an artificial intelligence to classify possible DDoS attacks in an SDN network. This will be done by using data collectors such as Telegraf, Mininet to emulate the SDN network, and InfluxDB and Grafana as a means to store data and visualize it respectively. For non-English speakers we leave part of the content of this guide written in Spanish:
@@ -253,6 +250,7 @@
 		As you can see in figure \ref{f:ryu_rcv}, the controller's \textbf{stdout} (please take a look at the appendix to learn more about file descriptors) indicates the commands it has been instantiating according to the packets it has processed. In the end, for the first packet we will have to tolerate a delay due to \textbf{ARP} resolution and \textbf{flow} lookup and instantiation within the controller. The good thing is the rest of the packets will already have the destination \textbf{MAC} and the rules will already instantiated in the intermediate switches, so the new delay will be minimal.
 
 \newpage
+
 \section{Attack Time}
 	We have already talked about how to set up our scenario but we haven't got into breaking things (i.e the fun stuff  ). Our goal is to simulate a \textbf{DoS} (\textbf{D}enial \textbf{o}f \textbf{Service}) attack. Note that we usually refer to this kind of threats as \textbf{DDoS} attacks where the first \textbf{D} stands for \textbf{D}istributed. This second "name" implies that we have multiple machines trying to flood our own. We are going to launch the needed amounts of traffic from a single host so we would be making a mistake if we were talking about a distributed attack. All in all this is just a minor nitpick, the concept behind both attacks is exactly the same.
 	\newpar
@@ -401,7 +399,9 @@
 
 	\subsection{Wanted a Video}
 		You can find a video showing the process we described step by step \href{https://www.youtube.com/watch?v=ofZPmV6_y_M}{here}. If you stumble upon any questions don't hesitate to contact us!
+
 \newpage
+
 \section{Traffic Classification With a SVM (\textbf{S}upport \textbf{V}ector \textbf{M}achine)}
 	We have our scenario working properly and the attack is having the desired effect on our network. In other words, it's blowing things up. If we are to detect the attack we need to gather representative data and process it somehow so that we can predict whether we are under attack or not. As Jack the Ripper once said, let's break this into parts. We'll begin by gathering the necessary data and sending it to a database we can easily query. We'll then prepare training datasets for our SVM and get it ready for making guesses. Let's begin!
 
@@ -472,11 +472,11 @@
 				\label{eq1}
 				\begin{split}
 					\hat{x}_f & = \hat{x}_o + \Delta\hat{x} \rightarrow \Delta\hat{x} = \hat{x}_f - \hat{x}_o = \\
-							& = \frac{\alpha + \omega}{\beta + 1} - \frac{\alpha}{\beta} = \\
-							& = \frac{\beta(\alpha + \omega) - \alpha(\beta + 1)}{\beta(\beta + 1)} = \\
-							& = \frac{\alpha + \omega - \hat{x}_o\beta - \hat{x}_o}{\beta + 1} = \\
-							& = \frac{\omega - \hat{x}_o}{\beta + 1} \rightarrow \\
-							& \rightarrow \Delta\hat{x} = \frac{\omega - \hat{x}_o}{\beta + 1}
+							  & = \frac{\alpha + \omega}{\beta + 1} - \frac{\alpha}{\beta} = \\
+							  & = \frac{\beta(\alpha + \omega) - \alpha(\beta + 1)}{\beta(\beta + 1)} = \\
+							  & = \frac{\alpha + \omega - \hat{x}_o\beta - \hat{x}_o}{\beta + 1} = \\
+							  & = \frac{\omega - \hat{x}_o}{\beta + 1} \rightarrow \\
+							  & \rightarrow \Delta\hat{x} = \frac{\omega - \hat{x}_o}{\beta + 1}
 				\end{split}
 			\end{equation}
 
@@ -509,8 +509,36 @@
 
 			We've also written a signal handler to allow for a graceful exit when pressing \texttt{CTRL + C}.
 			\newpar
-			And with that we are finished!   We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
+			And with that we are finished! We hope to have been clear enough but if you still have any questions don't hesitate to contact us. You can find our GitHub at the end of the document.
+
 \newpage
+
+\section{Net Status Visualization with the \texttt{Grafana} + \texttt{InfluxDB} + \texttt{Telegraf} tool set}
+	We have already discussed how to retrieve significant data from the hosts within mininet's network. The thing is this gathered data is nothing more than a collection of numbers whose interpretation can be quite tricky if we don't have a very clear idea of the system we are dealing with. We have seen how the traffic classifier's output was a new measurement within the \texttt{h4_net_stats} database within \texttt{InfluxDB}. We also talked about the process that let us "sneak" the data past mininet's own network so we are left with the task to interconnect \texttt{grafana} and \texttt{influxdb} so that we can get the visualization going. Even though we have already stated it, we feel like we should inform the reader that the installation of all these programs is handled by \texttt{vagrant}'s provisioning scripts: everything from the download of the correct binaries to the management of the associated service files with \texttt{systemd} has been taken care of.
+	\newpar
+	we'll begin by digging a little bit deeper into \texttt{grafana} as it's the tool we have described the least. We'll then briefly go through \texttt{influxdb}'s and \texttt{telegraf}'s data gathering configuration as well. We are doing this for completeness' sake, we should stress once more that the end user doesn't need to deal with.
+
+	\subsection{Configuring \texttt{Grafana}}
+		Grafana is a visualization platform. This implies that \texttt{grafana} itself \textbf{doesn't} gather any data and it \textbf{won't} store it either. This is where \texttt{telegraf} and \texttt{influxdb} come into play respectively. Having such a modular design allows for changes in the way we gather or store the data whilst maintaining the same monitoring interface. Now, we need to figure out how to get all these three services working cohesively and that's where configuration comes into play. We can take a look at the system we need to handle in figure \ref{f:g_i_t}.
+
+		\begin{figure}
+			\centering
+			\includegraphics[width=\linewidth]{g_i_t.png}
+			\caption{\texttt{Grafana}'s, \texttt{Influx}'s and \texttt{Telegraf}'s connections scheme}
+			\label{f:g_i_t}
+		\end{figure}
+
+		The configuration limits itself mostly to editing files under the \texttt{/etc} directory in the VMs. Let's dive into \texttt{grafana}'s and \texttt{influxdb}'s interconnection.
+
+		\subsubsection{Feeding data to \texttt{Grafana}}
+			\texttt{Grafana} and \texttt{influxdb} will communicate through \texttt{HTTP} messages. That's why the only "thing" we need to tell \texttt{grafana} to reach the database whose data we are interested in is the \texttt{IP:port} tuple identifying the machine hosting \texttt{inluxdb} and the port it's listening on. As we are running \texttt{grafana} in the same machine as the database and we are using \texttt{influx}'s default port we just need to use \textbf{\texttt{http://localhost:8086}} to reach \texttt{influxdb}. We now need to specify the database we want to query. As we have previously discussed we need to take a look at the \texttt{h4_net_stats} DB so we'll go ahead and configure that as well.
+			\newpar
+			The above process can be either carried out manually with \texttt{grafana}'s GUI or we can opt to provide a \texttt{.yml} provisioning file to be used when starting up the service to configure the data sources in a headless way. We opted to g this route to facilitate the deployment of the scenario. You can find the datasource configuration files over at \texttt{conf/datasources.yml} in the GitHub repository.
+
+		\subsubsection{Hacker mode on: Preparing the Dashboard}
+			We now have a way of getting data into \texttt{grafana} but we haven't provided any way of visualizing it... That's where the dashboard comes in. We'll use \texttt{grafana}'s GUI to prepare a set of visualizations ranging from bar graphs to doughnut meters to try and find a coherent and efficient way of determining the network state at a glance. In order to make the dsahboard more visually appealing we are also showing measuements %TODO: COntinue!!!
+		
+
 \section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 	We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
 
@@ -638,7 +666,7 @@
 			\caption{A lazy process...}
 			\label{f:x_htop}
 		\end{figure}
-		
+
 \newpage
 
 \section{Mininet's Internals (II)}
@@ -909,6 +937,7 @@
 		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace.
 
 \newpage
+
 \section{Troubleshooting}
 	\begin{itemize}
 		\item If we are to use a terminal emulator without an \textbf{X server} installed or properly configured the \textbf{miniedit} tool will not run. This tool presents us with a GUI we can use to define our network and then it'll generate a script that brings it up for us. If we are to reroute the \textbf{stdout} of a VM we will need to set the \texttt{\$DISPLAY} variable accordingly as \textbf{miniedit} used \textbf{tkinter} and it needs it to run correctly.
@@ -920,8 +949,9 @@
 		\includegraphics[width=\linewidth]{mn_clean.png}
 		\label{f:mn_clean}
 	\end{figure}
-	
+
 \newpage
+
 \section{Appendix}
 	We have decided to prepare an appendix so that we can shed some light on obscure topics not directly related to the project itself. We'll talk about tangential components of the project so that we can have a clearer idea of what's going on in the background and you can get a better grasp of the tools we have employed. It's a win win!
 
@@ -969,8 +999,6 @@
 		\item \textbf{Artem Strilets}: \href{https://github.com/pcolladosoto}{GitHub Profile}
 		\item \textbf{Pablo Collado}: \href{https://github.com/ArtemSSOO}{GitHub Profile}
 	\end{itemize}
-
-%\section{Bibliography (TODO)}
 
 \bibliographystyle{plain}
 \bibliography{references}{}
