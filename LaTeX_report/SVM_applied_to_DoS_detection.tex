@@ -7,6 +7,7 @@
 %	534																											   %
 %	551																											   %
 %	566																											   %
+%	581																											   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[12pt]{article}
@@ -571,6 +572,20 @@
 		\end{figure}
 
 	\subsection{The last piece of the puzzle: \texttt{telegraf}}
+		\texttt{Telegraf}'s configuration is carried out through \texttt{.conf} files under \texttt{/etc/telegraf} in each machine we want to gather data from. We have already explained the logic behind the filesystem bypass we implemented to "escape" mininet's cage. What we didn't do however is getting into how the "trick" was implemented. In order to get a high level overview of how \texttt{telegraf} works we need to talk about \texttt{plugins}:
+		\newpar
+		\texttt{Telegraf} is characterized by the implicit modularity of its design. All the data it gathers comes through \texttt{input plugins} and all the data it relays or outputs passes through its \texttt{output plugins}. We should point out that there are a few "gloabal" configuration parameters for the \texttt{telegraf} agent itself; the defaults are acceptable so we can focus solely on the \texttt{I/O} plugins. Following this approach we find how we only need to configure an output plugin to send \texttt{telegraf}'s output to \texttt{influxdb} and we need to choose the appropriate input plugins to gather data of interest for our project. We chose to use the \texttt{net} input plugin to access \texttt{ICMP} data but there are loads of plugins for gathering from  the current memory usage to the total process count in the monitored system. Taking this into account let's us tinker with \texttt{telegraf} in a pretty easy and intuitive way whilst abstracting ourselves from the \texttt{OS} running "under" us.
+		\newpar
+		Now, as \texttt{influxdb}'s \texttt{API} is web based we only need to provide the address of the machine hosting it (\texttt{localhost} in our case) and we'll be ready to rock. We'll notice how a \texttt{telegraf} database will be created seconds after starting \texttt{telegraf}'s service. All the data we'll gather is contained within this DB so we only need to configure \texttt{grafana}'s dashboard to query it and \textbf{magic}, it just works! You can find a screenshot portraying the status of the \texttt{telegraf} daemon over at figure \ref{f:telegrafd}.
+
+		\begin{figure}
+			\centering
+			\includegraphics[width=\linewidth]{telegrafd.png}
+			\caption{\texttt{Telegraf}'s Daemon Status}
+			\label{f:telegrafd}
+		\end{figure}
+
+	With all these services running we can create awesome monitoring stations with ease. Yay \texttt{OpenSource}!
 
 \section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 	We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
