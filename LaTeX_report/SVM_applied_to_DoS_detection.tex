@@ -1,3 +1,14 @@
+												%%%%%%%%
+												% TODO %
+												%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Get the images we're looking for into the img folder and adjust the sizes. The figure environments are at lines: %
+%	534																											   %
+%	551																											   %
+%	566																											   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \documentclass[12pt]{article}
 
 % Extend the usable characters beyond ASCII
@@ -533,11 +544,33 @@
 		\subsubsection{Feeding data to \texttt{Grafana}}
 			\texttt{Grafana} and \texttt{influxdb} will communicate through \texttt{HTTP} messages. That's why the only "thing" we need to tell \texttt{grafana} to reach the database whose data we are interested in is the \texttt{IP:port} tuple identifying the machine hosting \texttt{inluxdb} and the port it's listening on. As we are running \texttt{grafana} in the same machine as the database and we are using \texttt{influx}'s default port we just need to use \textbf{\texttt{http://localhost:8086}} to reach \texttt{influxdb}. We now need to specify the database we want to query. As we have previously discussed we need to take a look at the \texttt{h4_net_stats} DB so we'll go ahead and configure that as well.
 			\newpar
-			The above process can be either carried out manually with \texttt{grafana}'s GUI or we can opt to provide a \texttt{.yml} provisioning file to be used when starting up the service to configure the data sources in a headless way. We opted to g this route to facilitate the deployment of the scenario. You can find the datasource configuration files over at \texttt{conf/datasources.yml} in the GitHub repository.
+			The above process can be either carried out manually with \texttt{grafana}'s GUI or we can opt to provide a \texttt{.yml} provisioning file to be used when starting up the service to configure the data sources in a headless way. We opted to g this route to facilitate the deployment of the scenario. You can find the data source configuration files over at \texttt{conf/datasources.yaml} in the GitHub repository. This file must be located at \texttt{/etc/grafana/provisioning/datasources} in the machine running \texttt{grafana}.
 
 		\subsubsection{Hacker mode on: Preparing the Dashboard}
-			We now have a way of getting data into \texttt{grafana} but we haven't provided any way of visualizing it... That's where the dashboard comes in. We'll use \texttt{grafana}'s GUI to prepare a set of visualizations ranging from bar graphs to doughnut meters to try and find a coherent and efficient way of determining the network state at a glance. In order to make the dsahboard more visually appealing we are also showing measuements %TODO: COntinue!!!
-		
+			We now have a way of getting data into \texttt{grafana} but we haven't provided any way of visualizing it... That's where the dashboard comes in. We'll use \texttt{grafana}'s GUI to prepare a set of visualizations ranging from bar graphs to doughnut meters to try and find a coherent and efficient way of determining the network state at a glance. In order to make the dashboard more visually appealing we are also showing measurements related to other aspects of the network, not only those regarding the \texttt{DoS} attack detection. In order to get these measurements we had to tinker with telegraf's configuration. We'll get into it below. You can find a picture portraying our super cool dashboard in figure \ref{f:dashboard}.
+
+			\begin{figure}
+				\centering
+				\includegraphics[width=\linewidth]{dashboard.png}
+				\caption{\texttt{Grafana}'s dashboard}
+				\label{f:dashboard}
+			\end{figure}
+
+			In order to facilitate sharing and reinstalling dashboards \texttt{grafana} has a handy export functionality that let's us save our dashboards as \texttt{JSON} (\textbf{J}ava\textbf{S}cript \textbf{O}bject \textbf{N}otation) files. These can be seamlessly provisioned to \texttt{grafana} just like we did with the data source configuration before. You can find the file handling this process over at \texttt{conf/main.yaml} which needs to be located at \texttt{/etc/grafana/provisioning/dashboards}. The dashboard itself is located at \texttt{conf/project_dashboard.json}. This file needs to be located at \texttt{/var/lib/grafana/dashboards} so that our provisioning file can find it!
+			\newpar
+			We are now ready to delve deeper into the configuration regarding the database in charge of storing all this data. Enter \texttt{InfluxDB}.
+
+	\subsection{Configuring  \texttt{InfluxDB}}
+		Getting \texttt{influxdb} to work is actually quite a breeze. We can just use the default configuration and take it into account when configuring the other tools. As you might have guessed, \texttt{influxdb} exposes a \texttt{HTTP} entry point on port \texttt{8086} which is what we used when configuring \texttt{grafana} above. You can run \texttt{influx} on a shell within the \texttt{controller} VM to check that everything is working correctly. The command will open a DB management system where we can select what DB to query and perform operations on. As we haven't started \texttt{telegraf} yet we'll see no database has been created... yet. You can find a screenshot showing \texttt{influx}'s management system in figure \ref{f:influx}.
+
+		\begin{figure}
+			\centering
+			\includegraphics[width=\linewidth]{influx.png}
+			\caption{\texttt{Influx}'s management system}
+			\label{f:influx}
+		\end{figure}
+
+	\subsection{The last piece of the puzzle: \texttt{telegraf}}
 
 \section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 	We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
