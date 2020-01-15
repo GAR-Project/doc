@@ -73,6 +73,8 @@
 		\item Mininet Internals (II) Guide \href{https://hackmd.io/@davidcawork/SyrwHoNJL}{Link}
 	\end{itemize}
 
+    All source code and configuration-provisioning files can be found in our \href{https://github.com/GAR-Project/project}{github repository}. In addition we have enabled a website for a more comfortable reading of the documentation, you can find it \href{https://gar-project.github.io/project/}{here}.
+    \newpar
 	\textbf{Keywords}: \href{https://www.digitalattackmap.com/}{\textit{DDoS attacks}}; \href{https://www.opennetworking.org/sdn-definition}{\textit{SDN network}}; \href{https://www.sciencedirect.com/science/article/abs/pii/016974399500050X}{\textit{Artificial Intelligence classification}}; \href{https://mininet.org}{\textit{Mininet}}
 \end{abstract}
 
@@ -156,6 +158,7 @@
 	sudo ./util/install_ryu.sh
 	sudo ./util/install_grafana_influxdb.sh
 		\end{minted}
+\newpage
 
 \section{Our Scenario}
 	Our network scenario is described in the following script \href{https://github.com/GAR-Project/project/blob/master/src/scenario_basic.py}{\texttt{src/scenario\_basic.py}}. Mininet makes use of a Python API to give users the ability to automate processes easily, or to develop certain modules at their convenience. For this and many other reasons, Mininet is a highly flexible and powerful tool for network emulation which is widely used by the scientific community.
@@ -164,7 +167,7 @@
 		\item For more information about the API, see its \href{http://mininet.org/api/annotated.html}{manual}.
 	\end{itemize}
 
-	\begin{figure}
+	\begin{figure}[!htb]
 		\centering
 		\includegraphics[width=\linewidth]{scenario.png}
 		\caption{Mininet's Scenario}
@@ -172,6 +175,7 @@
 	\end{figure}
 
 	Figure \ref{f:scenario} presents us with the \textit{logic} scenario we will be working with. As with many other areas in networking this logic picture doesn't correspond with the real implementation we are using. We have seen throughout the installation procedure how we are always talking about 2 VMs. If you read carefully you'll see that one VM's "names" are \textbf{controller} and \textbf{mininet}. So it should come as no surprise that the controller and the network itself are living in different machines!
+	\newpar
 	\newpar
 	The first question that may arise is how on Earth can we logically join these 2 together. When working with virtualized environments we will generate a virtual LAN where each VM is able to communicate with one another. Once we stop thinking about programs and abstract the idea of "\textit{process}" we find that we can easily identify the \textbf{controller} which is just a \textbf{ryu} app, which is nothing more than a \textbf{python3} app with the \textbf{controller}'s VM \textbf{IP} address and the port number where the \textbf{ryu} is listening. We shouldn't forget that \textbf{any} process running within \textbf{any} host in the entire \textbf{Internet} can be identified with the host's \textbf{IP} address and the processes \textbf{port} number. Isn't it amazing?
 	\newpar
@@ -182,7 +186,28 @@
 		\item Facilitate the storage of data into \textbf{InfluxDB} from \textbf{telegraf}, as due to the internal workings of Mininet there may be conflicts in the communication of said data. Mininet's basic operation at a low level is be detailed below.
 		\item Having two different environments relying on distinct tools and implementing different functionalities let's us identify and debug problems way faster. We can know what piece of software is causing problems right away!
 	\end{itemize}
-
+    
+    \subsection{Use case}
+    Why this scenario and not another? That would be a question that would be asked by anyone who saw our project. Well, the fact that we have chosen this scenario and not another, is due to the benefits of Software Defined Networking (SDN). Among all the benefits we point out that it is possible to extract the control plane from the intermediate processing devices of the network, unifying it in entities called controllers, making the network administration a more centralized and flexible task.
+    \newpar
+    The detection system to be developed will benefit greatly from the fact that the control of the network is in a single machine, from which it will be possible to control or “instantiate” the rules necessary to mitigate the attacks previously detected by our system.
+    \newpar
+    So a practical application of our project can fit all the use cases of a SDN network. In our case we have chosen a small network with three switches. This is because we did not want to make the testing of our project too heavy, since we do not have very powerful machines to emulate a whole SDN core, it is going to be a “conceptual” sdn network. It is understood that the results obtained in this network are easily extrapolated to larger networks, because our project is not going to be very invasive with the SDN operation.
+    \newpar
+    If we want to particularize a little more in the case of use we can refer to the aggregation networks of an ISP (Internet service provider), which have the purpose of unifying different access networks of the clients. In this case, it is understood that the existence of an SDN in this aggregation network is reasonable, since as we have investigated it is usually a switch core. At the same time, we leave a figure \ref{f:usecase} that illustrates the concept of an aggregation network.
+    
+    \newpar
+    
+    In this way the ISP would have the capacity, thanks to our project, to detect if any of its clients is being victim of a DDoS attack, allowing it to mitigate it directly through the SDN controller.
+    
+    \newpage
+    \begin{figure}[!htb]
+			\centering
+			\includegraphics[width=\linewidth]{use_case.png}
+			\caption{Aggregation network}
+			\label{f:usecase}
+	\end{figure}
+	
 	\subsection{Running the scenario}
 		Running the scenario requires having logged into both VMs manually or using vagrant's SSH wrapper. First of all we're going to power up the controller, to do so we run the following from the \texttt{controller} VM. It's an application that does a basic forwarding, which is just what we need:
 
@@ -237,7 +262,8 @@
 	# We can also ping each other with the pingall command
 	mininet> pingall
 		\end{minted}
-
+        
+        \newpage
 		\begin{figure}
 			\centering
 			\includegraphics[width=\linewidth]{ping_ok.png}
@@ -584,9 +610,10 @@
 			\caption{\texttt{Telegraf}'s Daemon Status}
 			\label{f:telegrafd}
 		\end{figure}
-
+    \newpar
 	With all these services running we can create awesome monitoring stations with ease. Yay \texttt{OpenSource}!
 
+\newpage
 \section{Mininet's CLI (\textbf{C}ommand \textbf{L}ine \textbf{I}nterface)}
 	We've already set up our scenario and verified that it's working properly. We will now detail the most important commands we can issue from of \textbf{Mininet's CLI}.
 
@@ -766,9 +793,7 @@
 		\subsubsection{Not Today!}
 			The problem that the command \texttt{ip netns list} \textbf{doesn't} give us information, is that mininet is not creating the required softlink for the tool to be able to list the network namespaces, if we read the \href{http://man7.org/linux/man-pages/man8/ip-netns.8.html}{documentation} we can find out that \texttt{ip netns list} reads from the path \texttt{/var/run/netns/} where all the named network namespaces are placed. 
 			\newpar
-			If you've gotten to this point you probably want to check that iproute2 really does read from where it says it reads. We can get a trace of the system, i.e. collect all the syscalls made by a program and debug them ourselves. To do this we will use the \texttt{strace} command. For more information see their \href{https://linux.die.net/man/1/strace}{manual}.
-			\newpar
-			The command we will use to get the syscalls trace is the following:
+			If you've gotten to this point you probably want to check that iproute2 really does read from where it says it reads. We can get a trace of the system, i.e. collect all the syscalls made by a program and debug them ourselves. To do this we will use the \texttt{strace} command. For more information see their \href{https://linux.die.net/man/1/strace}{manual}. The command we will use to get the syscalls trace is the following:
 
 			\begin{minted}{bash}
 	sudo starce ip netns list
@@ -807,19 +832,24 @@
 
 			If none of these conditions are met, the namespace in question is \textbf{deleted}. If it is a \texttt{net} type namespace (a.k.a Network Namespace) those interfaces that are in the disappearing namespace will return to the default namespace. Once we understand this concept, we must think about the nature of the Network namespaces that Mininet creates.
 			\newpar
-			Mininet, when is launched it creates an emulated network, when is closed it should disappear, this process should be as light and fast as possible to provide a better user experience. The nature of Mininet's needs leads us to believe that the creation and destruction of network namespaces is associated with the first condition of referencing a namespace. That is, there would be no point in making mounts or softlinks that will have to be removed later, as this would mean a significant workload for large network emulations and an increase in the time spent cleaning up the system once the emulation is complete. In addition, we must take into account that there is a third condition that is quite suitable with Mininet's needs, since only one process is needed running per Network namespace, and when cleaning we must only finish with the processes that \textit{support} the Network namespaces.
-
+			Mininet, when is launched it creates an emulated network, when is closed it should disappear, this process should be as light and fast as possible to provide a better user experience. The nature of Mininet's needs leads us to believe that the creation and destruction of network namespaces is associated with the first condition of referencing a namespace. 
+			\newpar
+			
+			That is, there would be no point in making mounts or softlinks that will have to be removed later, as this would mean a significant workload for large network emulations and an increase in the time spent cleaning up the system once the emulation is complete. In addition, we must take into account that there is a third condition that is quite suitable with Mininet's needs, since only one process is needed running per Network namespace, and when cleaning we must only finish with the processes that \textit{support} the Network namespaces.
+            \newpar
+            
 		\subsubsection{Just a hypothesis?}
 			Well, according to the above reasoning, we should see several processes that are created at the time of the build-up of our scenario in Mininet. These processes should each have a Network Namespace file, \texttt{/proc/{pid}/ns/net}, with a different \textbf{inode} for those processes running in different Network namespaces. Where do we start looking?
-
+            \newpar
 			Let's set the scenario up if we haven't set it up before, list all processes, and filter by the name of \textit{mininet}. Let's see what we find.
+			\newpar
 
 			\begin{minted}{bash}
 	sudo ps aux | grep mininet
 			\end{minted}
 
 			The output of the avobe command can be seen in figure \ref{f:netns_procs}.
-
+            \newpage
 			\begin{figure}[!htb]
 				\centering
 				\includegraphics[width=\linewidth]{netns_procs.png}
@@ -830,14 +860,15 @@
 			Wow! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
 			\newpar
 			If we inspect the \texttt{/proc/{pid}/ns/net} file for each process we can see which ones are in a different network namespace depending on the value of the inode. For example, let's check the processes associated to hosts 1 and 2 can be seen in figures \ref{f:host1_procs} and \ref{f:host2_procs} respectively.
-
+            \newpar
+            
 			\begin{figure}[!htb]
 				\centering
 				\includegraphics[width=\linewidth]{host1_procs.png}
 				\label{f:host1_procs}
 				\caption{Host1's processes}
 			\end{figure}
-
+            \newpage
 			\begin{figure}[!htb]
 				\centering
 				\includegraphics[width=\linewidth]{host2_procs.png}
@@ -846,14 +877,13 @@
 			\end{figure}
 
 			As you can see, different inodes, different files, \textbf{different network namespaces}. In order to make it more evident, we are going to execute a command to show which interfaces are associated to each Network namespace. In order to inject processes into a namespace we will use the \texttt{nsenter} tool. For more information about this tool, please refer to its \href{http://man7.org/linux/man-pages/man1/nsenter.1.html}{manual}.
-
+            	\newpar
 			\begin{minted}{bash}
 	nsenter --target <pid> --net {Command}
 			\end{minted}
-
+            \newpar
 			The output of the above command for hosts 1 and 2 can be seen in figures \ref{f:host1_intf} and \ref{f:host2_intf} respectively.
-			
-			\newpage
+		
 
 			\begin{figure}[!htb]
 				\centering
@@ -892,9 +922,7 @@
 		\subsubsection{So, is it possible to use \texttt{iproute2} with Mininet?}
 			The quick and easy answer in the current state would be that \textbf{no}. We can always make use of the Python API to run things inside a network element or if not, we can ultimately open the Mininet CLI, open an xterm and throw things by hand, or as we have done before make use of the \texttt{nsenter} tool. 
 			\newpar
-			So, there is no solution ? Well, almost everything has a solution, it depends on us to how far we want to go to fix things. Let's see how we can enable the Network namespace of \textbf{Host1} to be visible for \texttt{ip netns}.
-			\newpar
-			First we must locate the PID of the bash that holds the Host1 Network Namespace. In our case it is the following:
+			So, there is no solution ? Well, almost everything has a solution, it depends on us to how far we want to go to fix things. Let's see how we can enable the Network namespace of \textbf{Host1} to be visible for \texttt{ip netns}. First we must locate the PID of the bash that holds the Host1 Network Namespace. In our case it is the following:
 
 			\begin{minted}{bash}
 	sudo ps aux | grep mininet | grep h1
@@ -933,10 +961,10 @@
 			\end{figure}
 
 			Finally, we would only have to try again the command 'ip netns list' to see if it is able to list the Network namespace. The output can be seen in figure \ref{f:it_works}.
-            \newpage
+
 			\begin{figure}[!htb]
 				\centering
-				\includegraphics[width=\linewidth]{it_works.png}
+				\includegraphics[width=0.7\linewidth]{it_works.png}
 				\label{f:it_works}
 				\caption{Listing the network namespaces once more}
 			\end{figure}
@@ -952,34 +980,33 @@
 			\end{figure}
 
 			As you can see in figure \ref{f:iproute2_fixed}, the command is fully functional. You can see how we are able to list all the interfaces of Host1's Network namespace. But as everything, it always has pros and cons, when we make the arrangement of creating a softlink and turning off the emulation with its corresponding system cleaning (we are mainly concerned with the elimination of the processes that supported the Network namespace), we are left with a broken softlink pointing to a site that no longer exists, or is no longer useful.
-            \newpage
-			\begin{figure}
+            \newpar
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[width=0.7\linewidth]{shutting_down.png}
+				\includegraphics[width=0.8\linewidth]{shutting_down.png}
 				\label{f:shutting_down}
 				\caption{Shutting Mininet down}
 			\end{figure}
-
-			\begin{figure}
+            \newpage
+			\begin{figure}[!htb]
 				\centering
-				\includegraphics[width=\linewidth]{broken_softlink.png}
+				\includegraphics[width=0.9\linewidth]{broken_softlink.png}
 				\label{f:broken_softlink}
-				\caption{Checking the namespaces once more}
+				\caption{Broken Softlink}
 			\end{figure}
 
 			With the outputs shown in figures \ref{f:shutting_down} and \ref{f:broken_softlink}, it is left up to the user to decide whether or not to use the iproute2 tool. If this is the case, it is recommended that an auxiliary cleaning script be developed to clean up those softlinks that are broken in the \texttt{/var/run/netns} directory when the emulation is finished.
-            \newpar
             
 	\subsection{The Big Picture}
 		Once we have concluded that Mininet makes use of Network namespaces and we know how to demonstrate it, we will inspect each of the Network namespaces to draw a scheme of how our Kernel-level scenario is implemented. Let's take another look at our scenario in figure \ref{f:scenario_prime}.
-        \newpage
+
 		\begin{figure}[!htb]
 			\centering
 			\includegraphics[width=0.8\linewidth]{scenario.png}
 			\label{f:scenario_prime}
 			\caption{Let's go back to the basic scenario}
 		\end{figure}
-        
+        \newpage
 		As you can observe in figure \ref{f:switches}, the switches are network elements that are supposed to be isolated in a network namespace, but for our surprise they are not in the default network namespace. Why does it work then, because there is no by-pass to the default network stack? This is because of the nature of veth, which goes straight to the OVS process itself. (A future guide will attempt to address this issue more fully).
 
 		\begin{figure}[!htb]
@@ -990,9 +1017,9 @@
 		\end{figure}
 
 		\subsubsection{How Would Our Kernel-level Scenario Look Then?}
-
+        \newpar
 		The final "scenario" can be seen in figure \ref{f:scenario_kernel}.
-
+        \newpage
 		\begin{figure}[!htb]
 			\centering
 			\includegraphics[width=\linewidth]{scenario_kernel.png}
@@ -1002,7 +1029,7 @@
 
 		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace.
 
-\newpage
+        \newpage
 
 \section{Troubleshooting}
 	\begin{itemize}
