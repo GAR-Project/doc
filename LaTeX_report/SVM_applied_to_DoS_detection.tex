@@ -751,6 +751,7 @@
 			\centering
 			\includegraphics[width=\linewidth]{netns_list.png}
 			\label{f:netns_list}
+			\caption{Listing the network namespaces}
 		\end{figure}
 
 		After checking figure \ref{f:netns_list} it seems that there is no Network namespace created, maybe, \textbf{Mininet doesn't work as we said before?} First of all, let's calm down just like \textbf{Tux} in figure \ref{f:tux}, we don't have to rewrite all the documentation.
@@ -759,6 +760,7 @@
 			\centering
 			\includegraphics[width=0.6\linewidth]{calm_tux.jpg}
 			\label{f:tux}
+			\caption{Just chilling}
 		\end{figure}
 
 		\subsubsection{Not Today!}
@@ -778,6 +780,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{sys_trace.jpg}
 				\label{f:sys_trace}
+				\caption{Systrace's output}
 			\end{figure}
 
 			Let's take a good look at the last four lines from figure \ref{f:sys_trace}. If it doesn't look right in the picture, it's these lines:
@@ -821,6 +824,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{netns_procs.png}
 				\label{f:netns_procs}
+				\caption{Mininet's processes}
 			\end{figure}
 
 			Wow! Without having created any process associated with each node in our scenario, there is already a process running a bash associated with each element in the scenario at the start of the emulation. That's funny... Isn't it? Let's dig a little deeper.
@@ -831,12 +835,14 @@
 				\centering
 				\includegraphics[width=\linewidth]{host1_procs.png}
 				\label{f:host1_procs}
+				\caption{Host1's processes}
 			\end{figure}
 
 			\begin{figure}[!htb]
 				\centering
 				\includegraphics[width=\linewidth]{host2_procs.png}
 				\label{f:host2_procs}
+				\caption{Hosts2's processes}
 			\end{figure}
 
 			As you can see, different inodes, different files, \textbf{different network namespaces}. In order to make it more evident, we are going to execute a command to show which interfaces are associated to each Network namespace. In order to inject processes into a namespace we will use the \texttt{nsenter} tool. For more information about this tool, please refer to its \href{http://man7.org/linux/man-pages/man1/nsenter.1.html}{manual}.
@@ -853,12 +859,14 @@
 				\centering
 				\includegraphics[width=\linewidth]{host1_intf.png}
 				\label{f:host1_intf}
+				\caption{Running \texttt{ip} on another Host1's namespace}
 			\end{figure}
 
 			\begin{figure}[!htb]
 				\centering
 				\includegraphics[width=\linewidth]{host2_intf.png}
 				\label{f:host2_intf}
+				\caption{Running \texttt{ip} on another Host2's namespace}
 			\end{figure}
 
 			If we look at the command entered in each network namespace it is the same, \texttt{ip addr show} (a.k.a \texttt{ip a s}). With this command we can list all the addresses assigned to each interface of the Network namespace. The result obtained from the execution of each command is the expected one, in the Network namespace of the \textbf{Host1} we can see that the interface \texttt{h1-eth0} exists, and in the Network namespace of the \textbf{Host2} the interface \texttt{h2-eth0}. With this test we conclude with the existence of the Network namespace that Mininet uses.
@@ -876,6 +884,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{debug.png}
 				\label{f:debug}
+				\caption{Mininet's debugging information}
 			\end{figure}
 
 			As you can see in the execution output from figure \ref{f:debug}, \texttt{veth} is created (\textbf{V}virtual \textbf{Eth}ernet devices), and the different processes that \textit{will} support the different Network Namespaces. Furthermore, it has been possible to check how the \texttt{tc} (\textbf{T}raffic \textbf{C}controller) is used to establish the bandwidth and maximum queue limits to the links in the scenario.
@@ -897,6 +906,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{h1_pid.png}
 				\label{f:h1_pid}
+				\caption{Getting Host1's processes again}
 			\end{figure}
 
 			Once we know the PID of the process that \textit{holds} the Host1 Network Namespace, we will create the \texttt{/var/run/netns} directory in case it is not created:
@@ -919,6 +929,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{lnk.png}
 				\label{f:lnk}
+				\caption{Making a symbolic link}
 			\end{figure}
 
 			Finally, we would only have to try again the command 'ip netns list' to see if it is able to list the Network namespace. The output can be seen in figure \ref{f:it_works}.
@@ -927,6 +938,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{it_works.png}
 				\label{f:it_works}
+				\caption{Listing the network namespaces once more}
 			\end{figure}
                 
     
@@ -936,6 +948,7 @@
 				\centering
 				\includegraphics[width=\linewidth]{iproute2_fixed.png}
 				\label{f:iproute2_fixed}
+				\caption{It works!}
 			\end{figure}
 
 			As you can see in figure \ref{f:iproute2_fixed}, the command is fully functional. You can see how we are able to list all the interfaces of Host1's Network namespace. But as everything, it always has pros and cons, when we make the arrangement of creating a softlink and turning off the emulation with its corresponding system cleaning (we are mainly concerned with the elimination of the processes that supported the Network namespace), we are left with a broken softlink pointing to a site that no longer exists, or is no longer useful.
@@ -944,12 +957,14 @@
 				\centering
 				\includegraphics[width=0.7\linewidth]{shutting_down.png}
 				\label{f:shutting_down}
+				\caption{Shutting Mininet down}
 			\end{figure}
 
 			\begin{figure}
 				\centering
 				\includegraphics[width=\linewidth]{broken_softlink.png}
 				\label{f:broken_softlink}
+				\caption{Checking the namespaces once more}
 			\end{figure}
 
 			With the outputs shown in figures \ref{f:shutting_down} and \ref{f:broken_softlink}, it is left up to the user to decide whether or not to use the iproute2 tool. If this is the case, it is recommended that an auxiliary cleaning script be developed to clean up those softlinks that are broken in the \texttt{/var/run/netns} directory when the emulation is finished.
@@ -962,6 +977,7 @@
 			\centering
 			\includegraphics[width=0.8\linewidth]{scenario.png}
 			\label{f:scenario_prime}
+			\caption{Let's go back to the basic scenario}
 		\end{figure}
         
 		As you can observe in figure \ref{f:switches}, the switches are network elements that are supposed to be isolated in a network namespace, but for our surprise they are not in the default network namespace. Why does it work then, because there is no by-pass to the default network stack? This is because of the nature of veth, which goes straight to the OVS process itself. (A future guide will attempt to address this issue more fully).
@@ -970,6 +986,7 @@
 			\centering
 			\includegraphics[width=\linewidth]{switches_ln.png}
 			\label{f:switches}
+			\caption{Checking the switche's processes}
 		\end{figure}
 
 		\subsubsection{How Would Our Kernel-level Scenario Look Then?}
@@ -980,6 +997,7 @@
 			\centering
 			\includegraphics[width=\linewidth]{scenario_kernel.png}
 			\label{f:scenario_kernel}
+			\caption{Scenario taking namesapces into account}
 		\end{figure}
 
 		So, to run \texttt{telegraf} only on the switches we would just launch it on the default network namespace! This can be done with a single \texttt{telegraf} process since the useful interfaces are all in the same Network namespace.
@@ -996,6 +1014,7 @@
 		\centering
 		\includegraphics[width=\linewidth]{mn_clean.png}
 		\label{f:mn_clean}
+		\caption{"Cleaning" Mininet}
 	\end{figure}
 
 \newpage
